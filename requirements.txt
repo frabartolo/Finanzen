@@ -1,0 +1,27 @@
+# Datenbank
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.25
+
+# FinTS / Banking
+fints==4.0.0
+mt-940==4.30.0
+
+# PDF-Parsing
+PyPDF2==3.0.1
+pdfplumber==0.10.3
+pytesseract==0.3.10
+
+# Data Processing
+pandas==2.2.0
+numpy==1.26.3
+
+# Configuration
+pyyaml==6.0.1
+python-dotenv==1.0.0
+
+# Logging & Utils
+colorlog==6.8.0
+python-dateutil==2.8.2
+
+# Optional: Machine Learning für Kategorisierung
+# scikit-learn==1.4.0

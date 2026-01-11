@@ -1,0 +1,17 @@
+# Kategorien für Transaktionen
+categories:
+  income:
+    - "Gehalt"
+    - "Bonus"
+    - "Miete Sonnenberg"
+    - "Miete Neuhof"
+    - "Sonstiges Einkommen"
+  
+  expenses:
+    - "Miete"
+    - "Lebensmittel"
+    - "Transport"
+    - "Versicherungen"
+    - "Unterhaltung"
+    - "Gesundheit"
+    - "Sonstiges"

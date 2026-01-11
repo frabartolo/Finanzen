@@ -1,0 +1,48 @@
+# Environment
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Data & Logs
+data/inbox/*.pdf
+data/processed/*.pdf
+data/db/*.db
+data/db/*.sqlite
+data/db/*.sqlite3
+data/db/pgdata/
+data/logs/*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.log
+
+# Grafana
+grafana/dashboards/*.json.bak
+grafana_data/
+
+# Temporäre Dateien
+*.tmp
+*.bak
+*.old

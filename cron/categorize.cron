@@ -1,0 +1,2 @@
+# Transaktionen täglich um 7:00 Uhr kategorisieren
+0 5 * * * cd /workspaces/Finanzen && python3 scripts/categorize.py >> /var/log/categorize.log 2>&1

@@ -1,0 +1,10 @@
+# Konto-Konfiguration
+accounts:
+  - name: "Girokonto"
+    type: "checking"
+    bank: ""
+    iban: ""
+  - name: "Sparkonto"
+    type: "savings"
+    bank: ""
+    iban: ""

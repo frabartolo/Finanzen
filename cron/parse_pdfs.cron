@@ -1,0 +1,2 @@
+# PDFs alle 2 Stunden verarbeiten
+0 */2 * * * cd /workspaces/Finanzen && python3 scripts/parse_pdfs.py >> /var/log/parse_pdfs.log 2>&1

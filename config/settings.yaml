@@ -1,0 +1,17 @@
+# Allgemeine Einstellungen
+settings:
+  timezone: "Europe/Berlin"
+  currency: "EUR"
+  date_format: "%Y-%m-%d"
+  
+  fints:
+    enabled: false
+    product_id: ""
+    
+  pdf_parsing:
+    enabled: true
+    watch_folder: "data/inbox"
+    
+  database:
+    type: "sqlite"
+    path: "data/db/finance.db"
