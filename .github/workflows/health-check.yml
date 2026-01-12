@@ -1,0 +1,55 @@
+name: Health Check
+
+on:
+  schedule:
+    # Alle 15 Minuten
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [production, development]
+    steps:
+      - name: Check Service Health - ${{ matrix.environment }}
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ matrix.environment == 'production' && secrets.PROD_HOST || secrets.DEV_HOST }}
+          username: ${{ matrix.environment == 'production' && secrets.PROD_USER || secrets.DEV_USER }}
+          key: ${{ matrix.environment == 'production' && secrets.PROD_SSH_KEY || secrets.DEV_SSH_KEY }}
+          script: |
+            cd /opt/finanzen${{ matrix.environment == 'development' && '-dev' || '' }}
+            
+            # Check Container Status
+            if ! docker compose ps | grep -q "Up"; then
+              echo "ERROR: Some containers are not running!"
+              docker compose ps
+              exit 1
+            fi
+            
+            # Check Grafana
+            if ! curl -f http://localhost:3000/api/health; then
+              echo "ERROR: Grafana is not responding!"
+              exit 1
+            fi
+            
+            # Check Database
+            if ! docker compose exec -T db pg_isready -U finanzen; then
+              echo "ERROR: Database is not ready!"
+              exit 1
+            fi
+            
+            echo "All services are healthy"
+
+      - name: Alert on Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            🚨 Health Check Failed!
+            Environment: ${{ matrix.environment }}
+            Check the service logs immediately.
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
