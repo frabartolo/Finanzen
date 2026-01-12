@@ -136,13 +136,22 @@ sh get-docker.sh
 # Verzeichnisse erstellen
 mkdir -p data/{db,inbox,logs,processed} backups
 
-# Konfiguration anpassen
-cp config/settings.yaml.example config/settings.yaml
-nano config/settings.yaml
+# Umgebungsvariablen konfigurieren
+cp .env.example .env
+nano .env
+
+# WICHTIG: Folgende Werte in .env anpassen:
+# - DB_PASSWORD: Sicheres Passwort setzen
+# - DB_ROOT_PASSWORD: Sicheres Root-Passwort setzen
+# - ENCRYPTION_KEY: Key generieren mit: openssl rand -hex 32
 
 # Erstes Deployment
 chmod +x deploy.sh
 ./deploy.sh
+
+# HINWEIS: Das Datenbank-Passwort in deploy.sh und health-check.sh
+# muss manuell angepasst werden, wenn ein anderes Passwort als
+# 'change_me_secure_password' verwendet wird.
 ```
 
 ### 3. Lokales Setup für Development

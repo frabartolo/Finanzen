@@ -36,7 +36,7 @@ jobs:
             fi
             
             # Check Database
-            if ! docker compose exec -T db pg_isready -U finanzen; then
+            if ! docker compose exec -T db mysqladmin ping -u finanzen -p$DB_PASSWORD; then
               echo "ERROR: Database is not ready!"
               exit 1
             fi

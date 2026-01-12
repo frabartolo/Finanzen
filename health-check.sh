@@ -29,7 +29,7 @@ check_grafana() {
 }
 
 check_database() {
-    if docker exec "$DB_CONTAINER" pg_isready -U finanzen > /dev/null 2>&1; then
+    if docker exec "$DB_CONTAINER" mysqladmin ping -u finanzen -pchange_me_secure_password > /dev/null 2>&1; then
         return 0
     else
         return 1

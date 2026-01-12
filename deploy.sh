@@ -61,9 +61,9 @@ print_success "Verzeichnisse erstellt"
 # Backup existing database
 echo ""
 echo "3. Erstelle Datenbank-Backup..."
-if [ -f "data/db/pgdata" ] || [ "$(docker ps -q -f name=finanzen_db)" ]; then
+if [ -f "data/db/mysql" ] || [ "$(docker ps -q -f name=finanzen_db)" ]; then
     BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
-    if docker compose exec -T db pg_dump -U finanzen finanzen > "$BACKUP_FILE" 2>/dev/null; then
+    if docker compose exec -T db mysqldump -u finanzen -pchange_me_secure_password finanzen > "$BACKUP_FILE" 2>/dev/null; then
         gzip "$BACKUP_FILE"
         print_success "Backup erstellt: ${BACKUP_FILE}.gz"
     else
@@ -107,7 +107,7 @@ echo ""
 echo "9. Health Checks..."
 
 # Check Database
-if docker compose exec -T db pg_isready -U finanzen > /dev/null 2>&1; then
+if docker compose exec -T db mysqladmin ping -u finanzen -pchange_me_secure_password > /dev/null 2>&1; then
     print_success "Datenbank läuft"
 else
     print_error "Datenbank nicht erreichbar!"
@@ -163,7 +163,7 @@ echo "=================================="
 echo ""
 echo "Zugriff:"
 echo "  - Grafana:  http://localhost:3000 (admin/admin)"
-echo "  - Database: localhost:5432"
+echo "  - Database: localhost:3306"
 echo ""
 echo "Nützliche Befehle:"
 echo "  - Logs anzeigen:     docker compose logs -f"

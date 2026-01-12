@@ -13,5 +13,7 @@ settings:
     watch_folder: "data/inbox"
     
   database:
-    type: "sqlite"
-    path: "data/db/finance.db"
+    type: "mariadb"
+    host: "db"
+    port: 3306
+    name: "finanzen"

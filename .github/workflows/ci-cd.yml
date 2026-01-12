@@ -190,7 +190,7 @@ jobs:
           script: |
             cd /opt/finanzen
             # Backup vor Deployment
-            docker compose exec -T db pg_dump -U finanzen finanzen > backup_$(date +%Y%m%d_%H%M%S).sql
+            docker compose exec -T db mysqldump -u finanzen -p$DB_PASSWORD finanzen > backup_$(date +%Y%m%d_%H%M%S).sql
             # Update
             git pull origin main
             docker compose pull
