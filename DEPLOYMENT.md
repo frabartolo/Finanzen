@@ -141,17 +141,21 @@ cp .env.example .env
 nano .env
 
 # WICHTIG: Folgende Werte in .env anpassen:
-# - DB_PASSWORD: Sicheres Passwort setzen
-# - DB_ROOT_PASSWORD: Sicheres Root-Passwort setzen
-# - ENCRYPTION_KEY: Key generieren mit: openssl rand -hex 32
+# - DB_PASSWORD: Sicheres Passwort (mindestens 12 Zeichen)
+# - DB_ROOT_PASSWORD: Sicheres Root-Passwort (mindestens 12 Zeichen)
+# - ENCRYPTION_KEY: Generieren mit: openssl rand -hex 32
+
+# Konfiguration validieren
+chmod +x validate-env.sh
+./validate-env.sh
+
+# Scripts ausführbar machen
+chmod +x deploy.sh health-check.sh rollback.sh
 
 # Erstes Deployment
-chmod +x deploy.sh
 ./deploy.sh
 
-# HINWEIS: Das Datenbank-Passwort in deploy.sh und health-check.sh
-# muss manuell angepasst werden, wenn ein anderes Passwort als
-# 'change_me_secure_password' verwendet wird.
+# HINWEIS: Alle Scripts lesen automatisch die Passwörter aus der .env Datei
 ```
 
 ### 3. Lokales Setup für Development
@@ -248,15 +252,26 @@ docker compose up -d
 ./rollback.sh
 ```
 
+### Konfiguration validieren
+```bash
+# Prüfe .env auf Sicherheitsprobleme
+./validate-env.sh
+```
+
 ### Manueller Backup
 ```bash
-docker compose exec -T db pg_dump -U finanzen finanzen | gzip > backup_manual.sql.gz
+# Lädt automatisch Passwort aus .env
+docker compose exec -T db mysqldump -u finanzen -p$DB_PASSWORD finanzen | gzip > backup_manual.sql.gz
 ```
 
 ### Health Check manuell
 ```bash
+# Script ausführen (lädt automatisch .env)
+./health-check.sh
+
+# Oder manuell:
 # Datenbank
-docker compose exec db pg_isready -U finanzen
+docker compose exec db mysqladmin ping -u finanzen -p$DB_PASSWORD
 
 # Grafana
 curl http://localhost:3000/api/health

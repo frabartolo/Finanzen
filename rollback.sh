@@ -6,6 +6,16 @@ BACKUP_DIR="./backups"
 
 echo "=== Finanzen Rollback Script ==="
 
+# Lade .env Datei wenn vorhanden
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Setze Default-Werte
+DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
+DB_USER=${DB_USER:-finanzen}
+DB_NAME=${DB_NAME:-finanzen}
+
 # Farben
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -52,7 +62,7 @@ echo "Stelle Datenbank wieder her..."
 docker compose stop app cron
 
 # Restore database
-gunzip -c "$LATEST_BACKUP" | docker compose exec -T db psql -U finanzen finanzen
+gunzip -c "$LATEST_BACKUP" | docker compose exec -T db mysql -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME"
 
 if [ $? -eq 0 ]; then
     print_success "Datenbank wiederhergestellt"

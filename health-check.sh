@@ -2,9 +2,17 @@
 # Health Check Script - Kann lokal oder via Monitoring ausgeführt werden
 set -e
 
+# Lade .env Datei wenn vorhanden
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Setze Default-Werte
 GRAFANA_URL=${GRAFANA_URL:-http://localhost:3000}
 DB_CONTAINER=${DB_CONTAINER:-finanzen_db}
 ALERT_EMAIL=${ALERT_EMAIL:-""}
+DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
+DB_USER=${DB_USER:-finanzen}
 
 # Exit Codes
 EXIT_OK=0
@@ -29,7 +37,7 @@ check_grafana() {
 }
 
 check_database() {
-    if docker exec "$DB_CONTAINER" mysqladmin ping -u finanzen -pchange_me_secure_password > /dev/null 2>&1; then
+    if docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
         return 0
     else
         return 1

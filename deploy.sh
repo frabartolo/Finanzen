@@ -16,6 +16,19 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Lade .env Datei wenn vorhanden
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+    print_success ".env Datei geladen"
+else
+    print_warning ".env Datei nicht gefunden - verwende Defaults"
+fi
+
+# Setze Default-Werte falls nicht in .env
+DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
+DB_USER=${DB_USER:-finanzen}
+DB_NAME=${DB_NAME:-finanzen}
+
 # Funktionen
 print_success() {
     echo -e "${GREEN}✓ $1${NC}"
@@ -63,7 +76,7 @@ echo ""
 echo "3. Erstelle Datenbank-Backup..."
 if [ -f "data/db/mysql" ] || [ "$(docker ps -q -f name=finanzen_db)" ]; then
     BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
-    if docker compose exec -T db mysqldump -u finanzen -pchange_me_secure_password finanzen > "$BACKUP_FILE" 2>/dev/null; then
+    if docker compose exec -T db mysqldump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE" 2>/dev/null; then
         gzip "$BACKUP_FILE"
         print_success "Backup erstellt: ${BACKUP_FILE}.gz"
     else
@@ -107,7 +120,7 @@ echo ""
 echo "9. Health Checks..."
 
 # Check Database
-if docker compose exec -T db mysqladmin ping -u finanzen -pchange_me_secure_password > /dev/null 2>&1; then
+if docker compose exec -T db mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
     print_success "Datenbank läuft"
 else
     print_error "Datenbank nicht erreichbar!"

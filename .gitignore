@@ -21,7 +21,14 @@ data/db/*.db
 data/db/*.sqlite
 data/db/*.sqlite3
 data/db/pgdata/
+data/db/mysql/
 data/logs/*.log
+
+# Backups
+backups/*.sql
+backups/*.sql.gz
+backup_*.sql
+backup_*.sql.gz
 
 # IDE
 .vscode/
