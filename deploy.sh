@@ -16,19 +16,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Lade .env Datei wenn vorhanden
-if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
-    print_success ".env Datei geladen"
-else
-    print_warning ".env Datei nicht gefunden - verwende Defaults"
-fi
-
-# Setze Default-Werte falls nicht in .env
-DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
-DB_USER=${DB_USER:-finanzen}
-DB_NAME=${DB_NAME:-finanzen}
-
 # Funktionen
 print_success() {
     echo -e "${GREEN}✓ $1${NC}"
@@ -41,6 +28,19 @@ print_warning() {
 print_error() {
     echo -e "${RED}✗ $1${NC}"
 }
+
+# Lade .env Datei wenn vorhanden
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+    print_success ".env Datei geladen"
+else
+    print_warning ".env Datei nicht gefunden - verwende Defaults"
+fi
+
+# Setze Default-Werte falls nicht in .env
+DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
+DB_USER=${DB_USER:-finanzen}
+DB_NAME=${DB_NAME:-finanzen}
 
 # Pre-deployment Checks
 echo "1. Pre-deployment Checks..."
