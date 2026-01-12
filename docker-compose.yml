@@ -28,8 +28,8 @@ services:
     environment:
       - MYSQL_DATABASE=finanzen
       - MYSQL_USER=finanzen
-      - MYSQL_PASSWORD=change_me_secure_password
-      - MYSQL_ROOT_PASSWORD=change_me_root_password
+      - MYSQL_PASSWORD=oRkZnAr3heJucQDLiMAftkiWn
+      - MYSQL_ROOT_PASSWORD=axcnVf6QSoHeClZBZsYXSeYcv
       - TZ=Europe/Berlin
     volumes:
       - ./data/db:/var/lib/mysql
