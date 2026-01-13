@@ -59,16 +59,22 @@ check_grafana() {
 }
 
 check_database() {
-    local retries=5
-    local wait_time=5
+    local retries=8
+    local wait_time=10
     
     for ((i=1; i<=retries; i++)); do
-        if docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" --connect-timeout=10 > /dev/null 2>&1; then
-            return 0
+        # Test 1: Versuche einfachen MariaDB-Ping
+        if docker exec "$DB_CONTAINER" mysqladmin ping -h localhost > /dev/null 2>&1; then
+            # Test 2: Versuche Anmeldung mit Benutzer (wie du es manuell machst)
+            if docker exec "$DB_CONTAINER" mariadb -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; then
+                return 0
+            fi
         fi
         
         if [ $i -lt $retries ]; then
             echo "Datenbank-Verbindungsversuch $i/$retries fehlgeschlagen, warte ${wait_time}s..."
+            echo "  Teste: docker exec $DB_CONTAINER mysqladmin ping -h localhost"
+            docker exec "$DB_CONTAINER" mysqladmin ping -h localhost 2>&1 | head -2 || true
             sleep $wait_time
         fi
     done
@@ -96,8 +102,8 @@ echo "$(date)"
 echo ""
 
 # Warte kurz damit Services Zeit haben sich zu stabilisieren
-echo "Warte 10 Sekunden für Service-Stabilisierung..."
-sleep 10
+echo "Warte 30 Sekunden für Service-Stabilisierung (besonders MariaDB)..."
+sleep 30
 echo ""
 
 # Container Checks
@@ -123,8 +129,13 @@ if check_database; then
 else
     echo "✗ Datenbank nicht bereit!"
     echo "  Debugging-Info:"
-    docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" 2>&1 | head -3 || true
-    docker logs "$DB_CONTAINER" --tail=5 2>/dev/null || true
+    echo "  - Teste mysqladmin ping ohne Auth:"
+    docker exec "$DB_CONTAINER" mysqladmin ping -h localhost 2>&1 | head -2 || true
+    echo "  - Teste MariaDB-Anmeldung:"
+    docker exec "$DB_CONTAINER" mariadb -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 'Connection OK' as status;" 2>&1 | head -2 || true
+    echo "  - Container-Logs (letzte 3 Zeilen):"
+    docker logs "$DB_CONTAINER" --tail=3 2>/dev/null || true
+    echo "  - Verwendete Credentials: User=$DB_USER, Container=$DB_CONTAINER"
     ((ERRORS++))
 fi
 
