@@ -30,11 +30,11 @@ services:
     image: mariadb:11.2
     container_name: finanzen_db
     environment:
-      - MYSQL_DATABASE=${DB_NAME:-finanzen}
-      - MYSQL_USER=${DB_USER:-finanzen}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-change_me_root_password}
-      - TZ=${TZ:-Europe/Berlin}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - TZ=${TZ}
     volumes:
       - ./data/db:/var/lib/mysql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
@@ -78,7 +78,7 @@ services:
       - ./scripts:/app/scripts:ro
       - ./cron:/app/cron:ro
     environment:
-      - TZ=Europe/Berlin
+      - TZ=${TZ}
     command: >
       sh -c "
       echo '0 6 * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1' > /etc/crontabs/root &&
