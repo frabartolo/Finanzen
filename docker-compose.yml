@@ -1,23 +1,29 @@
 services:
   # Python-App für Datenverarbeitung
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: finanzen_app
-    volumes:
-      - ./config:/app/config:ro
-      - ./data:/app/data
-      - ./scripts:/app/scripts:ro
-      - ./db:/app/db:ro
-    environment:
-      - TZ=Europe/Berlin
-      - PYTHONUNBUFFERED=1
-    restart: unless-stopped
-    networks:
-      - finanzen_net
-    depends_on:
-      - db
+app:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  container_name: finanzen_app
+  volumes:
+    - ./config:/app/config:ro
+    - ./data:/app/data
+    - ./scripts:/app/scripts:ro
+    - ./db:/app/db:ro
+  environment:
+    - TZ=${TZ}
+    - PYTHONUNBUFFERED=1
+    - DB_TYPE=mariadb
+    - DB_HOST=${DB_HOST}
+    - DB_PORT=3306
+    - DB_NAME=${DB_NAME}
+    - DB_USER=${DB_USER}
+    - DB_PASSWORD=${DB_PASSWORD}
+  restart: unless-stopped
+  networks:
+    - finanzen_net
+  depends_on:
+    - db
 
   # MariaDB Datenbank
   db:
