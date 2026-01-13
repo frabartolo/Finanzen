@@ -1,16 +1,16 @@
 apiVersion: 1
 
 datasources:
-  - name: PostgreSQL
-    type: postgres
+  - name: MariaDB
+    type: mysql
     access: proxy
-    url: db:5432
+    url: db:3306
     database: finanzen
     user: finanzen
     secureJsonData:
       password: 'change_me_secure_password'
     jsonData:
-      sslmode: 'disable'
-      postgresVersion: 1600
-      timescaledb: false
+      maxOpenConns: 100
+      maxIdleConns: 100
+      connMaxLifetime: 14400
     editable: true

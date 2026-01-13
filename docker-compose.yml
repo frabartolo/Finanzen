@@ -21,22 +21,25 @@ services:
     depends_on:
       - db
 
-  # PostgreSQL Datenbank (alternativ zu SQLite)
+  # MariaDB Datenbank
   db:
-    image: postgres:16-alpine
+    image: mariadb:11.2
     container_name: finanzen_db
     environment:
-      - POSTGRES_DB=finanzen
-      - POSTGRES_USER=finanzen
-      - POSTGRES_PASSWORD=change_me_secure_password
+      - MYSQL_DATABASE=${DB_NAME:-finanzen}
+      - MYSQL_USER=${DB_USER:-finanzen}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-change_me_root_password}
+      - TZ=${TZ:-Europe/Berlin}
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/mysql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     restart: unless-stopped
     networks:
       - finanzen_net
     ports:
-      - "5432:5432"
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   # Grafana für Visualisierung
   grafana:

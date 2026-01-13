@@ -32,11 +32,11 @@ def get_db_connection():
         db_path.parent.mkdir(parents=True, exist_ok=True)
         return sqlite3.connect(str(db_path))
     
-    elif db_type == 'postgresql':
-        import psycopg2
-        return psycopg2.connect(
+    elif db_type == 'mysql' or db_type == 'mariadb':
+        import mysql.connector
+        return mysql.connector.connect(
             host=os.getenv('DB_HOST', 'localhost'),
-            port=os.getenv('DB_PORT', '5432'),
+            port=os.getenv('DB_PORT', '3306'),
             database=os.getenv('DB_NAME', 'finanzen'),
             user=os.getenv('DB_USER', 'finanzen'),
             password=os.getenv('DB_PASSWORD', '')

@@ -1,44 +1,42 @@
--- Datenbank-Schema für Finanzverwaltung
+-- Datenbank-Schema für Finanzverwaltung (MariaDB/MySQL)
 
 CREATE TABLE IF NOT EXISTS accounts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    type TEXT NOT NULL,
-    bank TEXT,
-    iban TEXT,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    bank VARCHAR(255),
+    iban VARCHAR(34),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS categories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-    parent_id INTEGER,
-    FOREIGN KEY (parent_id) REFERENCES categories(id)
-);
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    type ENUM('income', 'expense') NOT NULL,
+    parent_id INT,
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    account_id INT NOT NULL,
     date DATE NOT NULL,
-    amount REAL NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
     description TEXT,
-    category_id INTEGER,
-    source TEXT, -- 'fints', 'pdf', 'manual'
+    category_id INT,
+    source VARCHAR(50), -- 'fints', 'pdf', 'manual'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id) REFERENCES accounts(id),
-    FOREIGN KEY (category_id) REFERENCES categories(id)
-);
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+    INDEX idx_transactions_date (date),
+    INDEX idx_transactions_account (account_id),
+    INDEX idx_transactions_category (category_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS documents (
-    id INTEGER PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     raw_text TEXT,
-    amount REAL,
-    category TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
-CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions(account_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category_id);
-CREATE INDEX IF NOT EXISTS idx_documents_id ON documents(id);
-CREATE INDEX IF NOT EXISTS idx_documents_category ON documents(category);
+    amount DECIMAL(15,2),
+    category VARCHAR(255),
+    INDEX idx_documents_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

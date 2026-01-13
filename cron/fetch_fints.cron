@@ -1,2 +1,2 @@
 # FinTS-Daten täglich um 6:00 Uhr abrufen
-0 3 * * * cd /workspaces/Finanzen && python3 scripts/fetch_fints.py >> /var/log/fetch_fints.log 2>&1
+0 6 * * * cd /workspaces/Finanzen && python3 scripts/fetch_fints.py >> /var/log/fetch_fints.log 2>&1

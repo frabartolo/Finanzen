@@ -51,21 +51,38 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
 
 ## 🚀 Quick Start
 
-1. **Konfiguration anpassen**
+1. **Umgebungsvariablen konfigurieren**
+   ```bash
+   # .env Datei erstellen
+   cp .env.example .env
+   
+   # Passwörter und Keys generieren
+   nano .env
+   
+   # Sichere Passwörter setzen:
+   # - DB_PASSWORD: Mindestens 12 Zeichen
+   # - DB_ROOT_PASSWORD: Mindestens 12 Zeichen
+   # - ENCRYPTION_KEY: openssl rand -hex 32
+   
+   # Konfiguration validieren
+   chmod +x validate-env.sh
+   ./validate-env.sh
+   ```
+
+2. **Konten und Kategorien konfigurieren**
    ```bash
    # Bankkonten in config/accounts.yaml eintragen
    # Kategorien in config/categories.yaml anpassen
    # Einstellungen in config/settings.yaml prüfen
    ```
 
-2. **Docker-Container starten**
+3. **Deployment durchführen**
    ```bash
-   docker-compose up -d
-   ```
-
-3. **Datenbank initialisieren**
-   ```bash
-   docker-compose exec app python scripts/setup_db.py
+   # Deployment-Script ausführbar machen
+   chmod +x deploy.sh health-check.sh rollback.sh
+   
+   # Deployment starten
+   ./deploy.sh
    ```
 
 4. **Grafana aufrufen**

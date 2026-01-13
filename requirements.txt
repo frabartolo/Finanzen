@@ -1,5 +1,5 @@
 # Datenbank
-psycopg2-binary==2.9.9
+mysql-connector-python==8.3.0
 sqlalchemy==2.0.25
 
 # FinTS / Banking

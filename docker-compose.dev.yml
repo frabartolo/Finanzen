@@ -1,0 +1,42 @@
+# Docker Compose Override für verschiedene Umgebungen
+
+# Development Environment
+# Verwendung: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    volumes:
+      - ./scripts:/app/scripts  # Live reload für Development
+    environment:
+      - DEBUG=1
+      - LOG_LEVEL=DEBUG
+    ports:
+      - "5000:5000"  # Debug Port
+
+  db:
+    environment:
+      - POSTGRES_PASSWORD=dev_password
+    ports:
+      - "5433:5432"  # Anderer Port um Konflikte zu vermeiden
+
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=dev
+      - GF_LOG_LEVEL=debug
+    ports:
+      - "3001:3000"
+
+  cron:
+    # Kürzere Intervalle für Development
+    command: >
+      sh -c "
+      echo '*/5 * * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1' > /etc/crontabs/root &&
+      echo '*/10 * * * * cd /app && python3 scripts/parse_pdfs.py >> /app/data/logs/parse_pdfs.log 2>&1' >> /etc/crontabs/root &&
+      echo '*/5 * * * * cd /app && python3 scripts/categorize.py >> /app/data/logs/categorize.log 2>&1' >> /etc/crontabs/root &&
+      crond -f -l 2
+      "
