@@ -17,7 +17,7 @@ services:
       - TZ=${TZ}
       - PYTHONUNBUFFERED=1
       - DB_TYPE=mariadb
-      - DB_HOST=${DB_HOST}
+      - DB_HOST=${DB_HOST}  # Zurück zur .env Variable
       - DB_PORT=3306
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
@@ -89,6 +89,12 @@ services:
       - ./cron:/app/cron:ro
     environment:
       - TZ=${TZ}
+      - DB_TYPE=mariadb
+      - DB_HOST=${DB_HOST}  # Zurück zur .env Variable
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     command: >
       sh -c "
       echo '0 6 * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1' > /etc/crontabs/root &&

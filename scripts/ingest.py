@@ -36,7 +36,7 @@ def check_environment():
             logger.warning(f"Verzeichnis fehlt: {directory}")
 
 def test_database_connection():
-    """Teste Datenbankverbindung"""
+    """Teste Datenbankverbindung mit detailliertem Debugging"""
     try:
         import mysql.connector
         logger.info("MySQL Connector erfolgreich importiert")
@@ -49,18 +49,52 @@ def test_database_connection():
             'database': os.getenv('DB_NAME', 'finanzen')
         }
         
-        logger.info(f"Verbinde zu Datenbank: {config['host']}:{config['port']}")
+        logger.info(f"Verbindungs-Config:")
+        logger.info(f"  Host: {config['host']}")
+        logger.info(f"  Port: {config['port']}")
+        logger.info(f"  User: {config['user']}")
+        logger.info(f"  Database: {config['database']}")
+        logger.info(f"  Password: {'*' * len(config['password']) if config['password'] else 'LEER'}")
+        
+        # Teste Netzwerk-Erreichbarkeit
+        import socket
+        logger.info(f"Teste Netzwerk-Erreichbarkeit zu {config['host']}:{config['port']}")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(10)
+        result = sock.connect_ex((config['host'], config['port']))
+        sock.close()
+        
+        if result == 0:
+            logger.info("✓ Netzwerk-Verbindung zum DB-Container erfolgreich")
+        else:
+            logger.error(f"✗ Netzwerk-Verbindung fehlgeschlagen (Code: {result})")
+            return False
+        
+        logger.info("Versuche MySQL-Verbindung...")
         connection = mysql.connector.connect(**config)
         cursor = connection.cursor()
-        cursor.execute("SELECT 'Database connection OK' as status")
+        cursor.execute("SELECT 'Database connection OK' as status, VERSION() as version")
         result = cursor.fetchone()
         logger.info(f"Datenbank-Test: {result[0]}")
+        logger.info(f"MariaDB Version: {result[1]}")
         cursor.close()
         connection.close()
         return True
         
+    except ImportError as e:
+        logger.error(f"MySQL Connector nicht verfügbar: {e}")
+        return False
+    except socket.error as e:
+        logger.error(f"Netzwerk-Fehler: {e}")
+        logger.error("Hinweis: Prüfe ob der DB-Container läuft und erreichbar ist")
+        return False
+    except mysql.connector.Error as e:
+        logger.error(f"MySQL-Fehler: {e}")
+        logger.error("Hinweis: Prüfe Credentials und Datenbankname")
+        return False
     except Exception as e:
-        logger.error(f"Datenbankverbindung fehlgeschlagen: {e}")
+        logger.error(f"Unbekannter Fehler bei Datenbankverbindung: {e}")
+        logger.error(f"Exception Type: {type(e).__name__}")
         return False
 
 def main_loop():
