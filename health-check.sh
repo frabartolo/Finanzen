@@ -21,27 +21,59 @@ EXIT_CRITICAL=2
 
 check_container() {
     local container=$1
-    if docker ps --filter "name=$container" --filter "status=running" | grep -q "$container"; then
-        return 0
-    else
-        return 1
-    fi
+    local retries=3
+    local wait_time=2
+    
+    for ((i=1; i<=retries; i++)); do
+        if docker ps --filter "name=$container" --filter "status=running" --format "{{.Names}}" | grep -q "^${container}$"; then
+            # Zusätzlich prüfen ob Container wirklich gesund ist
+            local health_status=$(docker inspect --format='{{.State.Health.Status}}' "$container" 2>/dev/null || echo "none")
+            if [ "$health_status" = "none" ] || [ "$health_status" = "healthy" ]; then
+                return 0
+            fi
+        fi
+        
+        if [ $i -lt $retries ]; then
+            sleep $wait_time
+        fi
+    done
+    
+    return 1
 }
 
 check_grafana() {
-    if curl -f -s "$GRAFANA_URL/api/health" > /dev/null; then
-        return 0
-    else
-        return 1
-    fi
+    local retries=3
+    local wait_time=3
+    
+    for ((i=1; i<=retries; i++)); do
+        if curl -f -s --connect-timeout 10 --max-time 15 "$GRAFANA_URL/api/health" > /dev/null; then
+            return 0
+        fi
+        
+        if [ $i -lt $retries ]; then
+            sleep $wait_time
+        fi
+    done
+    
+    return 1
 }
 
 check_database() {
-    if docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
+    local retries=5
+    local wait_time=5
+    
+    for ((i=1; i<=retries; i++)); do
+        if docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" --connect-timeout=10 > /dev/null 2>&1; then
+            return 0
+        fi
+        
+        if [ $i -lt $retries ]; then
+            echo "Datenbank-Verbindungsversuch $i/$retries fehlgeschlagen, warte ${wait_time}s..."
+            sleep $wait_time
+        fi
+    done
+    
+    return 1
 }
 
 check_disk_space() {
@@ -63,31 +95,46 @@ echo "=== Finanzen Health Check ==="
 echo "$(date)"
 echo ""
 
+# Warte kurz damit Services Zeit haben sich zu stabilisieren
+echo "Warte 10 Sekunden für Service-Stabilisierung..."
+sleep 10
+echo ""
+
 # Container Checks
+echo "Prüfe Container-Status..."
 for container in finanzen_db finanzen_app finanzen_cron finanzen_grafana; do
+    echo -n "Prüfe $container... "
     if check_container "$container"; then
-        echo "✓ $container läuft"
+        echo "✓ läuft"
     else
-        echo "✗ $container läuft NICHT!"
+        echo "✗ läuft NICHT!"
+        # Zeige Container-Status für Debugging
+        docker ps -a --filter "name=$container" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || true
         ((ERRORS++))
     fi
 done
 
 echo ""
 
-# Grafana Check
-if check_grafana; then
-    echo "✓ Grafana erreichbar"
-else
-    echo "✗ Grafana nicht erreichbar!"
-    ((ERRORS++))
-fi
-
-# Database Check
+# Database Check (zuerst, da andere Services davon abhängen)
+echo -n "Prüfe Datenbankverbindung... "
 if check_database; then
     echo "✓ Datenbank bereit"
 else
     echo "✗ Datenbank nicht bereit!"
+    echo "  Debugging-Info:"
+    docker exec "$DB_CONTAINER" mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" 2>&1 | head -3 || true
+    docker logs "$DB_CONTAINER" --tail=5 2>/dev/null || true
+    ((ERRORS++))
+fi
+
+# Grafana Check
+echo -n "Prüfe Grafana-Verbindung... "
+if check_grafana; then
+    echo "✓ Grafana erreichbar"
+else
+    echo "✗ Grafana nicht erreichbar!"
+    echo "  URL: $GRAFANA_URL/api/health"
     ((ERRORS++))
 fi
 

@@ -1,3 +1,6 @@
+# Docker Compose Override für Production Environment
+# Verwendung: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
 services:
   # Python-App für Datenverarbeitung
   app:
@@ -44,6 +47,13 @@ services:
     ports:
       - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    # Health check für bessere Überwachung
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   # Grafana für Visualisierung
   grafana:

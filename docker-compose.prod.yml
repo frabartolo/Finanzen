@@ -1,8 +1,8 @@
-# Docker Compose Override für Production
-
-version: '3.8'
+# Docker Compose Override für Production Environment
+# Verwendung: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 
 services:
+  # Python-App für Production
   app:
     restart: always
     logging:
@@ -10,7 +10,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    # Production-spezifische Umgebungsvariablen
+    environment:
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
 
+  # MariaDB für Production
   db:
     restart: always
     logging:
@@ -18,12 +23,20 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # Backup Volume
+    # Backup Volume für Production
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/mysql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
       - ./backups:/backups
+    # Optimierte Health-Check-Konfiguration für Production
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
+  # Grafana für Production
   grafana:
     restart: always
     logging:
@@ -34,7 +47,16 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_LOG_LEVEL=info
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
+    # Production-spezifische Volumes für Persistierung
+    volumes:
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - grafana_data:/var/lib/grafana
+      - ./backups/grafana:/var/lib/grafana/backups  # Backup-Ordner
 
+  # Cron für Production
   cron:
     restart: always
     logging:
@@ -42,3 +64,15 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    environment:
+      - LOG_LEVEL=INFO
+
+# Production-spezifische Volumes
+volumes:
+  grafana_data:
+    driver: local
+
+# Production-spezifische Netzwerk-Konfiguration
+networks:
+  finanzen_net:
+    driver: bridge

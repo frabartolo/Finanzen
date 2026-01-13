@@ -1,38 +1,51 @@
-# Docker Compose Override für verschiedene Umgebungen
-
-# Development Environment
+# Docker Compose Override für Development Environment
 # Verwendung: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
-version: '3.8'
-
 services:
+  # Python-App für Development
   app:
     build:
       context: .
-      target: development
+      target: development  # Falls ein Multi-Stage Dockerfile verwendet wird
     volumes:
       - ./scripts:/app/scripts  # Live reload für Development
     environment:
       - DEBUG=1
       - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
     ports:
-      - "5000:5000"  # Debug Port
+      - "5000:5000"  # Debug Port falls benötigt
+    restart: "no"  # Kein automatischer Restart in Development
 
+  # MariaDB für Development
   db:
     environment:
-      - POSTGRES_PASSWORD=dev_password
+      - MYSQL_ROOT_PASSWORD=dev_root_password
     ports:
-      - "5433:5432"  # Anderer Port um Konflikte zu vermeiden
+      - "3307:3306"  # Anderer Port um Konflikte zu vermeiden
+    restart: "no"
+    # Kürzere Health-Check-Intervalle für Development
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
+  # Grafana für Development  
   grafana:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=dev
       - GF_LOG_LEVEL=debug
+      - GF_INSTALL_PLUGINS=
     ports:
-      - "3001:3000"
+      - "3001:3000"  # Anderer Port für Development
+    restart: "no"
 
+  # Cron mit kürzeren Intervallen für Development
   cron:
-    # Kürzere Intervalle für Development
+    environment:
+      - DEBUG=1
+    # Kürzere Intervalle für Development/Testing
     command: >
       sh -c "
       echo '*/5 * * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1' > /etc/crontabs/root &&
@@ -40,3 +53,9 @@ services:
       echo '*/5 * * * * cd /app && python3 scripts/categorize.py >> /app/data/logs/categorize.log 2>&1' >> /etc/crontabs/root &&
       crond -f -l 2
       "
+    restart: "no"
+
+# Development-spezifische Netzwerk-Konfiguration (optional)
+networks:
+  finanzen_net:
+    driver: bridge
