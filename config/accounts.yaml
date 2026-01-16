@@ -11,12 +11,32 @@ accounts:
     pin: "${POSTBANK_PIN}"  # Wird aus .env geladen
     endpoint: "https://banking-be-1.postbank.de/fints30"  # Postbank FinTS-Endpoint
     
-  - name: "Postbank Sparkonto"
+  - name: "Postbank Tagesgeld"
     type: "savings"
     bank: "Postbank"
-    iban: "DE09876543210987654321"  # Falls vorhanden - Ihre echte IBAN
+    iban: "DE72550703240572916500"  # Falls vorhanden - Ihre echte IBAN
     # FinTS-Konfiguration (gleiche Zugangsdaten aus .env)
-    blz: "37010050"
+    blz: "55070324"
+    login_name: "${POSTBANK_LOGIN}"
+    pin: "${POSTBANK_PIN}"
+    endpoint: "https://banking-be-1.postbank.de/fints30"
+    
+  - name: "Postbank Anlagekonto"
+    type: "savings"
+    bank: "Postbank"
+    iban: "DE72550703240573427200"  # Falls vorhanden - Ihre echte IBAN
+    # FinTS-Konfiguration (gleiche Zugangsdaten aus .env)
+    blz: "55070324"
+    login_name: "${POSTBANK_LOGIN}"
+    pin: "${POSTBANK_PIN}"
+    endpoint: "https://banking-be-1.postbank.de/fints30"
+    
+  - name: "Postbank Anlagekonto"
+    type: "savings"
+    bank: "Postbank"
+    iban: "396573427200"  # Falls vorhanden - Ihre echte IBAN
+    # FinTS-Konfiguration (gleiche Zugangsdaten aus .env)
+    blz: "55070324"
     login_name: "${POSTBANK_LOGIN}"
     pin: "${POSTBANK_PIN}"
     endpoint: "https://banking-be-1.postbank.de/fints30"

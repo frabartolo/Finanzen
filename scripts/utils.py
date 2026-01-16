@@ -50,25 +50,25 @@ def get_db_connection():
     """Datenbankverbindung herstellen"""
     settings = load_config('settings')
     db_config = settings.get('database', {})
-    db_type = db_config.get('type', 'sqlite')
+    db_type = db_config.get('type', 'mariadb')
     
-    if db_type == 'sqlite':
-        db_path = Path(__file__).parent.parent / db_config.get('path', 'data/db/finance.db')
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        return sqlite3.connect(str(db_path))
-    
-    elif db_type == 'mysql' or db_type == 'mariadb':
+    if db_type == 'mysql' or db_type == 'mariadb':
         import mysql.connector
         return mysql.connector.connect(
             host=os.getenv('DB_HOST', 'localhost'),
-            port=os.getenv('DB_PORT', '3306'),
+            port=int(os.getenv('DB_PORT', '3306')),
             database=os.getenv('DB_NAME', 'finanzen'),
             user=os.getenv('DB_USER', 'finanzen'),
-            password=os.getenv('DB_PASSWORD', '')
+            password=os.getenv('DB_PASSWORD', ''),
+            connect_timeout=5
         )
-    
     else:
         raise ValueError(f"Nicht unterstützter Datenbanktyp: {db_type}")
+
+
+def get_db_placeholder():
+    """Datenbankspezifische Platzhalter für SQL-Queries"""
+    return '%s'  # MySQL/MariaDB Platzhalter
 
 
 def get_account_by_iban(iban: str):

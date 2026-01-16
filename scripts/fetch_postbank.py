@@ -13,7 +13,7 @@ import time
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection
+from scripts.utils import load_config, get_db_connection, get_db_placeholder
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -137,10 +137,11 @@ def setup_account_in_db(account_config: Dict) -> Optional[int]:
     """Konto in Datenbank einrichten, falls nicht vorhanden"""
     conn = get_db_connection()
     cursor = conn.cursor()
+    placeholder = get_db_placeholder()
     
     try:
         # Prüfen ob Konto bereits existiert
-        cursor.execute("SELECT id FROM accounts WHERE iban = %s", (account_config['iban'],))
+        cursor.execute(f"SELECT id FROM accounts WHERE iban = {placeholder}", (account_config['iban'],))
         result = cursor.fetchone()
         
         if result:
@@ -149,7 +150,7 @@ def setup_account_in_db(account_config: Dict) -> Optional[int]:
         else:
             # Konto anlegen
             cursor.execute(
-                "INSERT INTO accounts (name, type, bank, iban) VALUES (%s, %s, %s, %s)",
+                f"INSERT INTO accounts (name, type, bank, iban) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})",
                 (account_config['name'], account_config['type'], account_config['bank'], account_config['iban'])
             )
             account_id = cursor.lastrowid

@@ -11,7 +11,7 @@ import logging
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection
+from scripts.utils import load_config, get_db_connection, get_db_placeholder
 from scripts.fetch_postbank import PostbankFinTSClient, setup_account_in_db
 
 # Logging konfigurieren
@@ -129,19 +129,26 @@ def sync_accounts_to_db():
     print("🔄 SYNCHRONISIERE KONTEN IN DATENBANK")
     print("="*60)
     
-    # Prüfen ob Datenbank verfügbar ist
+    # Prüfen ob MariaDB verfügbar ist
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Prüfen ob accounts Tabelle existiert
         cursor.execute("SHOW TABLES LIKE 'accounts'")
         if not cursor.fetchone():
             print("❌ Datenbank-Tabellen existieren noch nicht!")
             print("   Lösung: ./deploy.sh production ausführen")
+            conn.close()
             return
+        
+        print("✅ MariaDB-Verbindung erfolgreich")
         conn.close()
+        
     except Exception as e:
-        print(f"❌ Datenbank nicht verfügbar: {e}")
+        print(f"❌ MariaDB nicht verfügbar: {e}")
         print("   Lösung: ./deploy.sh production ausführen")
+        print("   MariaDB muss zuerst gestartet werden!")
         return
     
     accounts_config = load_config('accounts')
