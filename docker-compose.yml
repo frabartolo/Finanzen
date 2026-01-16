@@ -26,10 +26,10 @@ services:
     networks:
       - finanzen_net
     depends_on:
-      - db
+      - finanzen_db
 
   # MariaDB Datenbank
-  db:
+  finanzen_db:
     image: mariadb:11.2
     container_name: finanzen_db
     environment:
@@ -49,7 +49,7 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     # Health check für bessere Überwachung
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -74,7 +74,7 @@ services:
     networks:
       - finanzen_net
     depends_on:
-      - db
+      - finanzen_db
 
   # Cron-Service für automatische Tasks
   cron:
@@ -96,17 +96,12 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
     command: >
-      sh -c "
-      echo '0 6 * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1' > /etc/crontabs/root &&
-      echo '0 */2 * * * cd /app && python3 scripts/parse_pdfs.py >> /app/data/logs/parse_pdfs.log 2>&1' >> /etc/crontabs/root &&
-      echo '0 7 * * * cd /app && python3 scripts/categorize.py >> /app/data/logs/categorize.log 2>&1' >> /etc/crontabs/root &&
-      crond -f -l 2
-      "
+      sh -c "crontab /app/cron/crontab && crond -f"
     restart: unless-stopped
     networks:
       - finanzen_net
     depends_on:
-      - db
+      - finanzen_db
 
 networks:
   finanzen_net:
