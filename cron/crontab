@@ -1,0 +1,13 @@
+# Finanzen Crontab - Alle automatisierten Tasks
+# Logs werden in /app/data/logs/ geschrieben
+
+# FinTS-Daten täglich um 6:00 Uhr abrufen
+0 6 * * * cd /app && python3 scripts/fetch_fints.py >> /app/data/logs/fetch_fints.log 2>&1
+
+# Transaktionen täglich um 7:00 Uhr kategorisieren
+0 7 * * * cd /app && python3 scripts/categorize.py >> /app/data/logs/categorize.log 2>&1
+
+# PDFs alle 2 Stunden verarbeiten
+0 */2 * * * cd /app && python3 scripts/parse_pdfs.py >> /app/data/logs/parse_pdfs.log 2>&1
+
+# Leere Zeile am Ende für korrekte Crontab-Formatierung
