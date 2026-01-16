@@ -76,7 +76,7 @@ echo ""
 echo "3. Erstelle Datenbank-Backup..."
 if [ -f "data/db/mysql" ] || [ "$(docker ps -q -f name=finanzen_db)" ]; then
     BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
-    if docker compose exec -T db mysqldump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE" 2>/dev/null; then
+    if docker compose exec -T finanzen_db mariadb-dump -u "$DB_USER" -p"$DB_PASSWORD" "$DB_NAME" > "$BACKUP_FILE" 2>/dev/null; then
         gzip "$BACKUP_FILE"
         print_success "Backup erstellt: ${BACKUP_FILE}.gz"
     else
@@ -120,7 +120,7 @@ echo ""
 echo "9. Health Checks..."
 
 # Check Database
-if docker compose exec -T finanzen_db mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
+if docker compose exec -T finanzen_db mariadb -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; then
     print_success "Datenbank läuft"
 else
     print_error "Datenbank nicht erreichbar!"
