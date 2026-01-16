@@ -129,6 +129,21 @@ def sync_accounts_to_db():
     print("🔄 SYNCHRONISIERE KONTEN IN DATENBANK")
     print("="*60)
     
+    # Prüfen ob Datenbank verfügbar ist
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SHOW TABLES LIKE 'accounts'")
+        if not cursor.fetchone():
+            print("❌ Datenbank-Tabellen existieren noch nicht!")
+            print("   Lösung: ./deploy.sh production ausführen")
+            return
+        conn.close()
+    except Exception as e:
+        print(f"❌ Datenbank nicht verfügbar: {e}")
+        print("   Lösung: ./deploy.sh production ausführen")
+        return
+    
     accounts_config = load_config('accounts')
     
     for account in accounts_config.get('accounts', []):
