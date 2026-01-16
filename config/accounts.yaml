@@ -31,7 +31,7 @@ accounts:
     pin: "${POSTBANK_PIN}"
     endpoint: "https://banking-be-1.postbank.de/fints30"
     
-  - name: "Postbank Anlagekonto"
+  - name: "Postbank Wertpapierdepot"
     type: "savings"
     bank: "Postbank"
     iban: "396573427200"  # Falls vorhanden - Ihre echte IBAN
