@@ -55,7 +55,7 @@ def get_db_connection():
     if db_type == 'mysql' or db_type == 'mariadb':
         import mysql.connector
         return mysql.connector.connect(
-            host=os.getenv('DB_HOST', 'localhost'),
+            host=os.getenv('DB_HOST', 'finanzen_db'),
             port=int(os.getenv('DB_PORT', '3306')),
             database=os.getenv('DB_NAME', 'finanzen'),
             user=os.getenv('DB_USER', 'finanzen'),
