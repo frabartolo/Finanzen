@@ -45,7 +45,7 @@ DB_NAME=${DB_NAME:-finanzen}
 # Navigate to project directory and pull latest changes
 echo "0. Aktualisiere Code-Repository..."
 cd /opt/finanzen
-if git pull; then
+if git -n pull; then
     print_success "Repository aktualisiert"
 else
     print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
