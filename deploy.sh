@@ -120,11 +120,11 @@ echo ""
 echo "9. Health Checks..."
 
 # Check Database
-if docker compose exec -T db mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
+if docker compose exec -T finanzen_db mysqladmin ping -u "$DB_USER" -p"$DB_PASSWORD" > /dev/null 2>&1; then
     print_success "Datenbank läuft"
 else
     print_error "Datenbank nicht erreichbar!"
-    docker compose logs db
+    docker compose logs finanzen_db
     exit 1
 fi
 
