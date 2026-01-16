@@ -42,6 +42,15 @@ DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
 DB_USER=${DB_USER:-finanzen}
 DB_NAME=${DB_NAME:-finanzen}
 
+# Navigate to project directory and pull latest changes
+echo "0. Aktualisiere Code-Repository..."
+cd /opt/finanzen
+if git pull; then
+    print_success "Repository aktualisiert"
+else
+    print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
+fi
+
 # Pre-deployment Checks
 echo "1. Pre-deployment Checks..."
 
