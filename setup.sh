@@ -70,7 +70,8 @@ if .venv/bin/python -m pip install -r requirements-minimal.txt; then
     print_success "Minimale Abhängigkeiten installiert"
 else
     print_error "Fehler beim Installieren der Abhängigkeiten"
-    exit 1
+    print_warning "Versuche einzelne Installation..."
+    .venv/bin/python -m pip install pyyaml==6.0.1 python-dotenv==1.0.0 mysql-connector-python==8.3.0 fints==4.0.0 colorlog==6.8.0 python-dateutil==2.8.2
 fi
 
 echo ""

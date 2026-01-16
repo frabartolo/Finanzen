@@ -38,13 +38,27 @@ class PostbankFinTSClient:
             
             logger.info(f"🔌 Verbinde mit Postbank für Konto: {self.account_config['name']}")
             
-            self.client = FinTS3PinTanClient(
-                blz=self.account_config['blz'],
-                user_id=self.account_config['login_name'],
-                pin=self.account_config['pin'],
-                server=self.account_config['endpoint'],
-                product_id=self.settings.get('fints', {}).get('product_id', 'FINANZEN_APP_1.0')
-            )
+            # Moderne FinTS-Client Initialisierung
+            # Verschiedene API-Varianten unterstützen
+            try:
+                # Neuere fints-Version (mit bank_identifier)
+                self.client = FinTS3PinTanClient(
+                    blz=self.account_config['blz'],
+                    user_id=self.account_config['login_name'],
+                    pin=self.account_config['pin'],
+                    server=self.account_config['endpoint'],
+                    bank_identifier=self.account_config['blz'],
+                    product_id=self.settings.get('fints', {}).get('product_id', 'FINANZEN_APP_1.0')
+                )
+            except TypeError:
+                # Ältere fints-Version (ohne bank_identifier)
+                self.client = FinTS3PinTanClient(
+                    blz=self.account_config['blz'],
+                    user_id=self.account_config['login_name'],
+                    pin=self.account_config['pin'],
+                    server=self.account_config['endpoint'],
+                    product_id=self.settings.get('fints', {}).get('product_id', 'FINANZEN_APP_1.0')
+                )
             
             # Test-Verbindung
             accounts = self.client.get_sepa_accounts()
