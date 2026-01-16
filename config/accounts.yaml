@@ -20,3 +20,13 @@ accounts:
     login_name: "${POSTBANK_LOGIN}"
     pin: "${POSTBANK_PIN}"
     endpoint: "https://banking-be-1.postbank.de/fints30"
+    
+  - name: "ING-DiBa Girokonto"
+    type: "checking"
+    bank: "ING-DiBa"
+    iban: "DE12500105170123456789"  # Ihre echte ING IBAN hier eintragen
+    # FinTS-Konfiguration für ING-DiBa
+    blz: "50010517"  # ING-DiBa BLZ
+    login_name: "${DIBA_LOGIN}"  # Wird aus .env geladen
+    pin: "${DIBA_PIN}"  # Wird aus .env geladen
+    endpoint: "https://fints.ing-diba.de/fints30"  # ING-DiBa FinTS-Endpoint
