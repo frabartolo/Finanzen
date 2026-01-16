@@ -5,8 +5,12 @@ settings:
   date_format: "%d.%m.%Y"
   
   fints:
-    enabled: false
-    product_id: ""
+    enabled: true
+    product_id: "FINANZEN_APP_1.0"  # Eindeutige Product-ID für Ihre App
+    # Postbank-spezifische Einstellungen
+    default_days: 30  # Standard: letzte 30 Tage abrufen
+    retry_attempts: 3
+    timeout: 60
     
   pdf_parsing:
     enabled: true

@@ -1,10 +1,22 @@
 # Konto-Konfiguration
+# WICHTIG: Zugangsdaten werden aus .env Datei geladen
 accounts:
-  - name: "Girokonto"
+  - name: "Postbank Girokonto"
     type: "checking"
-    bank: ""
-    iban: ""
-  - name: "Sparkonto"
+    bank: "Postbank"
+    iban: "DE46370100500649213501"  # Ihre echte IBAN hier eintragen
+    # FinTS-Konfiguration - Zugangsdaten aus .env
+    blz: "37010050"  # Postbank BLZ
+    login_name: "${POSTBANK_LOGIN}"  # Wird aus .env geladen
+    pin: "${POSTBANK_PIN}"  # Wird aus .env geladen
+    endpoint: "https://banking-be-1.postbank.de/fints30"  # Postbank FinTS-Endpoint
+    
+  - name: "Postbank Sparkonto"
     type: "savings"
-    bank: ""
-    iban: ""
+    bank: "Postbank"
+    iban: "DE09876543210987654321"  # Falls vorhanden - Ihre echte IBAN
+    # FinTS-Konfiguration (gleiche Zugangsdaten aus .env)
+    blz: "37010050"
+    login_name: "${POSTBANK_LOGIN}"
+    pin: "${POSTBANK_PIN}"
+    endpoint: "https://banking-be-1.postbank.de/fints30"

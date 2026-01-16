@@ -6,19 +6,44 @@ Hilfsfunktionen für die Finanz-Scripts
 import yaml
 import os
 import sqlite3
+import re
 from pathlib import Path
 from typing import Dict, Any
 
 
+def expand_env_vars(text: str) -> str:
+    """Umgebungsvariablen in Text expandieren (${VAR} Format)"""
+    def replace_var(match):
+        var_name = match.group(1)
+        return os.getenv(var_name, match.group(0))  # Fallback: ursprünglicher Text
+    
+    return re.sub(r'\$\{([^}]+)\}', replace_var, text)
+
+
+def expand_dict_env_vars(data: Any) -> Any:
+    """Umgebungsvariablen in Dict/List-Struktur rekursiv expandieren"""
+    if isinstance(data, dict):
+        return {key: expand_dict_env_vars(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [expand_dict_env_vars(item) for item in data]
+    elif isinstance(data, str):
+        return expand_env_vars(data)
+    else:
+        return data
+
+
 def load_config(config_name: str) -> Dict[str, Any]:
-    """YAML-Konfiguration laden"""
+    """YAML-Konfiguration laden mit Umgebungsvariablen-Unterstützung"""
     config_path = Path(__file__).parent.parent / "config" / f"{config_name}.yaml"
     
     if not config_path.exists():
         raise FileNotFoundError(f"Konfiguration nicht gefunden: {config_path}")
     
     with open(config_path, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
+        config_data = yaml.safe_load(f)
+    
+    # Umgebungsvariablen expandieren
+    return expand_dict_env_vars(config_data)
 
 
 def get_db_connection():
