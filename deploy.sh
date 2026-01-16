@@ -45,7 +45,19 @@ DB_NAME=${DB_NAME:-finanzen}
 # Navigate to project directory and pull latest changes
 echo "0. Aktualisiere Code-Repository..."
 cd /opt/finanzen
-if git -n pull; then
+
+# Standard commit message für automatische Commits
+DEPLOY_COMMIT_MSG="Auto-commit before deployment $(date '+%Y-%m-%d %H:%M:%S')"
+
+# Prüfe ob es lokale Änderungen gibt
+if [ -n "$(git status --porcelain)" ]; then
+    print_warning "Lokale Änderungen gefunden - erstelle automatischen Commit"
+    git add -A
+    git commit -m "$DEPLOY_COMMIT_MSG"
+fi
+
+# Pull latest changes
+if git pull --rebase; then
     print_success "Repository aktualisiert"
 else
     print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
