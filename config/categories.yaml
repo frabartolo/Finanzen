@@ -8,10 +8,18 @@ categories:
     - "Sonstiges Einkommen"
   
   expenses:
-    - "Miete"
+    # Alte Schreibweise (funktioniert weiterhin)
     - "Lebensmittel"
-    - "Transport"
-    - "Versicherungen"
-    - "Unterhaltung"
-    - "Gesundheit"
-    - "Sonstiges"
+    
+    # Neue hierarchische Schreibweise
+    - name: "Wohnen"
+      subcategories:
+        - "Miete"
+        - "Strom"
+        - "Internet"
+        
+    - name: "Mobilität"
+      children:  # 'children' oder 'subcategories' geht beides
+        - "Tanken"
+        - "Versicherung"
+        - "Wartung"

@@ -7,6 +7,8 @@ import os
 import time
 import logging
 from datetime import datetime
+import sys
+from pathlib import Path
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -14,6 +16,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Projekt-Root zum Pfad hinzufügen für Imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 def check_environment():
     """Prüfe Umgebungsvariablen und Konfiguration"""
@@ -97,6 +102,16 @@ def test_database_connection():
         logger.error(f"Exception Type: {type(e).__name__}")
         return False
 
+def run_startup_tasks():
+    """Führt initiale Tasks beim Start aus (z.B. DB-Sync)"""
+    logger.info("Führe Startup-Tasks aus...")
+    try:
+        from scripts.manage_accounts import sync_accounts_to_db
+        sync_accounts_to_db()
+        logger.info("Startup-Tasks (Accounts Sync) erfolgreich abgeschlossen")
+    except Exception as e:
+        logger.error(f"Fehler bei Startup-Tasks: {e}")
+
 def main_loop():
     """Hauptschleife - läuft kontinuierlich"""
     logger.info("Starte Haupt-Service-Loop...")
@@ -126,6 +141,9 @@ if __name__ == "__main__":
         
         if db_ok:
             logger.info("Alle Checks erfolgreich - Service läuft kontinuierlich")
+            # Einmaliger Sync beim Start
+            run_startup_tasks()
+            # Dann in den Loop
             main_loop()
         else:
             logger.error("Datenbank nicht verfügbar - Service läuft im Debug-Modus")
@@ -134,6 +152,7 @@ if __name__ == "__main__":
                 logger.info("Warte auf Datenbankverbindung...")
                 if test_database_connection():
                     logger.info("Datenbank jetzt verfügbar!")
+                    run_startup_tasks()
                     main_loop()  # Starte main_loop nach erfolgreicher DB-Verbindung
                     break
                 time.sleep(30)

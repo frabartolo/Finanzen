@@ -9,7 +9,7 @@ import yaml
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import get_db_connection, load_config
+from scripts.utils import get_db_connection, load_config, get_db_placeholder
 
 
 def init_database():
@@ -36,6 +36,72 @@ def init_database():
         return False
 
 
+def update_schema_for_hierarchy():
+    """Schema für Unterkategorien erweitern"""
+    print("🔄 Prüfe Schema auf Hierarchie-Support...")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Prüfen ob parent_id Spalte existiert
+        cursor.execute("SHOW COLUMNS FROM categories LIKE 'parent_id'")
+        if not cursor.fetchone():
+            print("   Füge parent_id Spalte hinzu...")
+            cursor.execute("ALTER TABLE categories ADD COLUMN parent_id INT NULL")
+            cursor.execute("ALTER TABLE categories ADD CONSTRAINT fk_category_parent FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL")
+            conn.commit()
+            print("✅ Schema erfolgreich erweitert")
+        else:
+            print("✅ Schema unterstützt bereits Hierarchien")
+            
+    except Exception as e:
+        print(f"⚠️ Fehler beim Schema-Update: {e}")
+    finally:
+        conn.close()
+        return True
+
+
+def insert_category_tree(cursor, items, cat_type, parent_id=None):
+    """Rekursives Einfügen von Kategorien und Unterkategorien"""
+    ph = get_db_placeholder()
+    
+    for item in items:
+        name = None
+        subcategories = []
+        
+        # Unterscheidung: Einfacher String oder Objekt mit Unterkategorien
+        if isinstance(item, str):
+            name = item
+        elif isinstance(item, dict):
+            name = item.get('name')
+            subcategories = item.get('children', item.get('subcategories', []))
+        
+        if not name:
+            continue
+            
+        # Prüfen ob Kategorie existiert
+        cursor.execute(f"SELECT id FROM categories WHERE name = {ph} AND type = {ph}", (name, cat_type))
+        result = cursor.fetchone()
+        
+        current_id = None
+        if result:
+            current_id = result[0]
+            # Parent setzen falls noch nicht vorhanden
+            if parent_id is not None:
+                cursor.execute(f"UPDATE categories SET parent_id = {ph} WHERE id = {ph} AND parent_id IS NULL", (parent_id, current_id))
+        else:
+            # Neu anlegen
+            cursor.execute(
+                f"INSERT INTO categories (name, type, parent_id) VALUES ({ph}, {ph}, {ph})", 
+                (name, cat_type, parent_id)
+            )
+            current_id = cursor.lastrowid
+        
+        # Rekursion für Unterkategorien
+        if subcategories and current_id:
+            insert_category_tree(cursor, subcategories, cat_type, current_id)
+
+
 def populate_categories():
     """Kategorien aus config/categories.yaml in Datenbank einfügen"""
     print("📋 Füge Kategorien ein...")
@@ -46,18 +112,12 @@ def populate_categories():
         cursor = conn.cursor()
         
         # Income-Kategorien
-        for category in categories_config.get('categories', {}).get('income', []):
-            cursor.execute(
-                "INSERT OR IGNORE INTO categories (name, type) VALUES (?, ?)",
-                (category, 'income')
-            )
+        income_cats = categories_config.get('categories', {}).get('income', [])
+        insert_category_tree(cursor, income_cats, 'income')
         
         # Expense-Kategorien
-        for category in categories_config.get('categories', {}).get('expenses', []):
-            cursor.execute(
-                "INSERT OR IGNORE INTO categories (name, type) VALUES (?, ?)",
-                (category, 'expense')
-            )
+        expense_cats = categories_config.get('categories', {}).get('expenses', [])
+        insert_category_tree(cursor, expense_cats, 'expense')
         
         conn.commit()
         conn.close()
@@ -101,6 +161,7 @@ def main():
     
     success = True
     success &= init_database()
+    success &= update_schema_for_hierarchy()
     success &= populate_categories()
     success &= populate_accounts()
     
