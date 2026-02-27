@@ -8,18 +8,41 @@ categories:
     - "Sonstiges Einkommen"
   
   expenses:
-    # Alte Schreibweise (funktioniert weiterhin)
+    # Lebensmittel & Gastronomie
     - "Lebensmittel"
     
-    # Neue hierarchische Schreibweise
+    # Wohnen
     - name: "Wohnen"
       subcategories:
         - "Miete"
         - "Strom"
         - "Internet"
-        
+    
+    # Mobilität
     - name: "Mobilität"
-      children:  # 'children' oder 'subcategories' geht beides
+      children:
         - "Tanken"
-        - "Versicherung"
         - "Wartung"
+        - "Öffentliche Verkehrsmittel"
+    
+    # Gesundheit
+    - name: "Gesundheit"
+      children:
+        - "Apotheke"
+        - "Arzt"
+        - "Krankenhaus"
+    
+    # Versicherungen
+    - name: "Versicherungen"
+      children:
+        - "Krankenversicherung"
+        - "Haftpflicht"
+        - "Hausrat"
+        - "KFZ-Versicherung"
+    
+    # Shopping & Online
+    - "Online Shopping"
+    - "Shopping"
+    
+    # Entertainment & Abos
+    - "Entertainment"

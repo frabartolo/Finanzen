@@ -1,13 +1,13 @@
 apiVersion: 1
 
 providers:
-  - name: 'default'
+  - name: 'Finanzen Dashboards'
     orgId: 1
-    folder: ''
+    folder: 'Finanzen'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     allowUiUpdates: true
     options:
-      path: /etc/grafana/provisioning/dashboards
+      path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: true

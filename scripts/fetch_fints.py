@@ -94,7 +94,7 @@ def save_transactions(transactions: List[Dict], account_id: int) -> None:
             cursor.execute(
                 """
                 SELECT id FROM transactions 
-                WHERE account_id = ? AND date = ? AND amount = ? AND description = ?
+                WHERE account_id = %s AND date = %s AND amount = %s AND description = %s
                 """,
                 (account_id, trans['date'], trans['amount'], trans['purpose'])
             )
@@ -103,7 +103,7 @@ def save_transactions(transactions: List[Dict], account_id: int) -> None:
                 cursor.execute(
                     """
                     INSERT INTO transactions (account_id, date, amount, description, source)
-                    VALUES (?, ?, ?, ?, 'fints')
+                    VALUES (%s, %s, %s, %s, 'fints')
                     """,
                     (account_id, trans['date'], trans['amount'], trans['purpose'])
                 )
@@ -127,7 +127,7 @@ def fetch_all_accounts() -> None:
     
     for account in accounts_config.get('accounts', []):
         # Account-ID aus Datenbank holen
-        cursor.execute("SELECT id FROM accounts WHERE iban = ?", (account.get('iban'),))
+        cursor.execute("SELECT id FROM accounts WHERE iban = %s", (account.get('iban'),))
         result = cursor.fetchone()
         
         if result:

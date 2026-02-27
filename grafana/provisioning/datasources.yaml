@@ -4,11 +4,11 @@ datasources:
   - name: MariaDB
     type: mysql
     access: proxy
-    url: db:3306
+    url: finanzen_db:3306
     database: finanzen
     user: finanzen
     secureJsonData:
-      password: 'change_me_secure_password'
+      password: ${DB_PASSWORD}
     jsonData:
       maxOpenConns: 100
       maxIdleConns: 100

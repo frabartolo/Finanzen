@@ -5,19 +5,47 @@ Hilfsfunktionen für die Finanz-Scripts
 
 import yaml
 import os
-import sqlite3
 import re
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def expand_env_vars(text: str) -> str:
     """Umgebungsvariablen in Text expandieren (${VAR} Format)"""
     def replace_var(match):
         var_name = match.group(1)
-        return os.getenv(var_name, match.group(0))  # Fallback: ursprünglicher Text
+        
+        # Zuerst versuchen aus verschlüsseltem Store zu laden
+        value = get_secure_credential(var_name)
+        if value:
+            return value
+        
+        # Fallback: aus Environment
+        return os.getenv(var_name, match.group(0))
     
     return re.sub(r'\$\{([^}]+)\}', replace_var, text)
+
+
+def get_secure_credential(key: str) -> Optional[str]:
+    """
+    Holt eine Credential aus dem verschlüsselten Store
+    
+    Args:
+        key: Credential-Key (z.B. "POSTBANK_PIN")
+    
+    Returns:
+        Credential-Wert oder None
+    """
+    try:
+        from scripts.credential_manager import CredentialManager
+        manager = CredentialManager()
+        return manager.get_credential(key)
+    except Exception as e:
+        logger.debug(f"Credential '{key}' nicht im verschlüsselten Store: {e}")
+        return None
 
 
 def expand_dict_env_vars(data: Any) -> Any:
@@ -75,7 +103,8 @@ def get_account_by_iban(iban: str):
     """Account-ID anhand der IBAN abrufen"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name FROM accounts WHERE iban = ?", (iban,))
+    ph = get_db_placeholder()
+    cursor.execute(f"SELECT id, name FROM accounts WHERE iban = {ph}", (iban,))
     result = cursor.fetchone()
     conn.close()
     return result
@@ -89,4 +118,5 @@ def format_amount(amount: float, currency: str = 'EUR') -> str:
 def ensure_dir(path: Path) -> None:
     """Sicherstellen, dass Verzeichnis existiert"""
     path.mkdir(parents=True, exist_ok=True)
+
 

@@ -25,7 +25,14 @@ def init_database():
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.executescript(schema_sql)
+        
+        # SQL-Statements einzeln ausführen (MySQL unterstützt kein executescript)
+        statements = schema_sql.split(';')
+        for statement in statements:
+            statement = statement.strip()
+            if statement:
+                cursor.execute(statement)
+        
         conn.commit()
         conn.close()
         
@@ -137,10 +144,12 @@ def populate_accounts():
         accounts_config = load_config('accounts')
         conn = get_db_connection()
         cursor = conn.cursor()
+        ph = get_db_placeholder()
         
         for account in accounts_config.get('accounts', []):
+            # MySQL: INSERT IGNORE statt INSERT OR IGNORE
             cursor.execute(
-                "INSERT OR IGNORE INTO accounts (name, type, bank, iban) VALUES (?, ?, ?, ?)",
+                f"INSERT IGNORE INTO accounts (name, type, bank, iban) VALUES ({ph}, {ph}, {ph}, {ph})",
                 (account['name'], account['type'], account.get('bank', ''), account.get('iban', ''))
             )
         

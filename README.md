@@ -14,19 +14,29 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
   - Manuelle Eingabemöglichkeit
   
 - **Intelligente Kategorisierung**
-  - Regelbasierte automatische Kategorisierung
+  - Regelbasierte automatische Kategorisierung mit Prioritäts-System
+  - Custom-Regeln in YAML konfigurierbar
   - Machine Learning für bessere Zuordnung (optional)
   - Manuelle Korrekturen möglich
 
 - **Visualisierung**
-  - Grafana-Dashboards für detaillierte Analysen
+  - Grafana-Dashboards für detaillierte Analysen (8 vorkonfigurierte Panels)
+  - Zeitreihen, Pie Charts, Tabellen
   - Optional: Home Assistant Integration
-  - Echtzeit-Updates
+  - Echtzeit-Updates (Auto-Refresh alle 5 Min)
 
-- **Datenschutz**
+- **Datenschutz & Sicherheit**
   - 100% lokal, keine Cloud
-  - Verschlüsselte Datenbank
+  - Verschlüsselte Credentials mit Fernet-Encryption
+  - PBKDF2-Key-Derivation
+  - Sichere Datenbank mit MariaDB
   - Kein Datenversand nach außen
+
+- **Automatisierung**
+  - Cron-Jobs für tägliche Updates
+  - Monitoring & Health-Checks
+  - Automatische Log-Rotation
+  - Fehler-Benachrichtigungen
 
 ## 🏗️ Architektur
 
@@ -56,24 +66,43 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
    # .env Datei erstellen
    cp .env.example .env
    
-   # Passwörter und Keys generieren
+   # Encryption Key generieren
+   python3 scripts/encryption.py --generate-key
+   # → Key kopieren und in .env als ENCRYPTION_KEY eintragen
+   
+   # Passwörter und Keys setzen
    nano .env
    
    # Sichere Passwörter setzen:
    # - DB_PASSWORD: Mindestens 12 Zeichen
    # - DB_ROOT_PASSWORD: Mindestens 12 Zeichen
-   # - ENCRYPTION_KEY: openssl rand -hex 32
+   # - ENCRYPTION_KEY: Generierter Key von oben
    
    # Konfiguration validieren
    chmod +x validate-env.sh
    ./validate-env.sh
    ```
 
+2. **Bankzugangsdaten sicher speichern**
+   ```bash
+   # Credentials verschlüsselt speichern (empfohlen!)
+   python3 scripts/credential_manager.py store POSTBANK_LOGIN "ihr_login"
+   python3 scripts/credential_manager.py store POSTBANK_PIN "ihr_pin"
+   
+   # ODER: Migration aus .env
+   python3 scripts/credential_manager.py migrate
+   ```
+
 2. **Konten und Kategorien konfigurieren**
    ```bash
    # Bankkonten in config/accounts.yaml eintragen
+   # WICHTIG: Keine Passwörter direkt hier! Nur ${PLATZHALTER} verwenden
+   
    # Kategorien in config/categories.yaml anpassen
-   # Einstellungen in config/settings.yaml prüfen
+   # Unterstützt hierarchische Strukturen
+   
+   # Kategorisierungsregeln in config/settings.yaml prüfen
+   # Eigene Regex-Patterns hinzufügen möglich
    ```
 
 3. **Deployment durchführen**
@@ -115,34 +144,68 @@ Cron-Jobs können in den `cron/*.cron` Dateien angepasst werden.
 
 ```bash
 # FinTS-Daten manuell abrufen
-python scripts/fetch_fints.py
+docker compose exec app python3 scripts/fetch_fints.py
 
-# PDFs manuell verarbeiten
-python scripts/parse_pdfs.py
+# Nur Postbank-Konten
+docker compose exec app python3 scripts/fetch_postbank.py
+
+# PDFs manuell verarbeiten (aus data/inbox/)
+docker compose exec app python3 scripts/parse_pdfs.py
 
 # Transaktionen kategorisieren
-python scripts/categorize.py
+docker compose exec app python3 scripts/categorize.py
+
+# Mit Force-Option (auch bereits kategorisierte neu zuordnen)
+docker compose exec app python3 scripts/categorize.py --force
+
+# Credentials verwalten
+docker compose exec app python3 scripts/credential_manager.py list
+docker compose exec app python3 scripts/credential_manager.py get KEY
 
 # Daten in DB importieren
-python scripts/ingest.py
+docker compose exec app python3 scripts/ingest.py
 ```
 
 ## 🔐 Sicherheit
 
 - Alle sensiblen Daten bleiben lokal
-- Bankzugangsdaten werden verschlüsselt gespeichert
+- Bankzugangsdaten werden mit Fernet verschlüsselt gespeichert (AES-128)
+- PBKDF2-Key-Derivation mit 100.000 Iterationen
 - Keine Verbindung zu externen Diensten (außer deiner Bank via FinTS)
 - Docker-Container laufen isoliert
+- File-Permissions 0600 für sensible Dateien
+
+**Wichtig:** 
+- ENCRYPTION_KEY sicher aufbewahren (Passwort-Manager)
+- Bei Verlust des Keys sind Daten unwiederbringlich verloren
+- Regelmäßige Backups erstellen
 
 ## 📊 Dashboards
 
 Die Grafana-Dashboards zeigen:
 
-- Kontostand-Entwicklung
-- Einnahmen vs. Ausgaben
-- Kategorieverteilung
-- Monatliche/Jährliche Trends
-- Budget-Übersichten
+- **Statistiken-Panels:**
+  - Gesamteinnahmen, Gesamtausgaben, Aktueller Saldo
+  
+- **Zeitreihen-Charts:**
+  - Einnahmen vs. Ausgaben (12 Monate)
+  - Saldo-Entwicklung
+  
+- **Kategorieverteilung:**
+  - Top 10 Ausgaben-Kategorien (Pie Chart)
+  - Einnahmen nach Kategorie (Pie Chart)
+  - Quartalsübersicht (Bar Chart)
+  
+- **Transaktions-Tabelle:**
+  - Letzte 100 Transaktionen mit Filter- und Sortierfunktion
+  
+- **Features:**
+  - Auto-Refresh alle 5 Minuten
+  - Zeitraumauswahl (Standard: 30 Tage)
+  - Export als CSV/PDF
+
+Zugriff: http://localhost:3000  
+Login: admin / admin (beim ersten Start ändern!)
 
 ## 🛠️ Erweiterungen
 
@@ -150,6 +213,14 @@ Die Grafana-Dashboards zeigen:
 - Budget-Alarme bei Überschreitungen
 - Export für Steuer-Software
 - Analyse von Spar-Potentialen
+- Machine Learning für Kategorisierung (scikit-learn)
+- REST-API für externe Zugriffe
+
+## 📝 Dokumentation
+
+- [📖 Vollständige Dokumentation](DOKUMENTATION.md) - Installation, Konfiguration, API-Referenz
+- [📋 Changelog](CHANGELOG.md) - Version History & Änderungen
+- [🐛 Troubleshooting](DOKUMENTATION.md#troubleshooting) - Häufige Probleme & Lösungen
 
 ## 📝 Lizenz
 

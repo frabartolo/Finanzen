@@ -10,4 +10,10 @@
 # PDFs alle 2 Stunden verarbeiten
 0 */2 * * * cd /app && python3 scripts/parse_pdfs.py >> /app/data/logs/parse_pdfs.log 2>&1
 
+# Monitoring täglich um 8:00 Uhr
+0 8 * * * /bin/bash /app/cron/monitor.sh >> /app/data/logs/monitor.log 2>&1
+
+# Alte Logs aufräumen (älter als 90 Tage) - wöchentlich sonntags um 3:00
+0 3 * * 0 find /app/data/logs -name "*.log" -mtime +90 -delete
+
 # Leere Zeile am Ende für korrekte Crontab-Formatierung
