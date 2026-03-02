@@ -69,10 +69,11 @@ class Categorizer:
             settings = load_config('settings')
             rules_config = settings.get('categorization_rules', {})
             
-            # Standard-Regeln wenn keine in config vorhanden
-            default_rules = self._get_default_rules()
+            # IMMER mit Default-Regeln starten
+            self.rules = self._get_default_rules()
             
-            # Custom Rules aus Config
+            # Custom Rules aus Config HINZUFÜGEN (nicht ersetzen!)
+            custom_count = 0
             for category_name, patterns in rules_config.items():
                 for pattern_config in patterns:
                     if isinstance(pattern_config, str):
@@ -86,13 +87,12 @@ class Categorizer:
                     
                     if pattern:
                         self.rules.append(CategoryRule(pattern, category_name, priority))
+                        custom_count += 1
             
-            # Falls keine Custom Rules: Default Rules verwenden
-            if not self.rules:
-                self.rules = default_rules
-                logger.info("📋 Verwende Default-Kategorisierungsregeln")
+            if custom_count > 0:
+                logger.info(f"📋 {len(self.rules)} Regeln geladen ({custom_count} Custom + {len(self.rules)-custom_count} Standard)")
             else:
-                logger.info(f"📋 {len(self.rules)} Custom-Kategorisierungsregeln geladen")
+                logger.info(f"📋 {len(self.rules)} Standard-Kategorisierungsregeln geladen")
             
             # Nach Priorität sortieren (höhere Priorität zuerst)
             self.rules.sort(key=lambda r: r.priority, reverse=True)

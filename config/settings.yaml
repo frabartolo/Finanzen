@@ -22,24 +22,24 @@ settings:
     port: 3306
     name: "finanzen"
 
-# Kategorisierungsregeln (optional - Standard-Regeln sind im Code hinterlegt)
+# Kategorisierungsregeln (optional - wenn auskommentiert, werden Standard-Regeln verwendet)
 # Format: Kategorie-Name: Liste von Regex-Patterns oder Pattern-Objekten mit Priorität
-categorization_rules:
-  # Einnahmen
-  "Gehalt":
-    - pattern: '\b(gehalt|lohn|salary)\b'
-      priority: 100
-  
-  "Miete Sonnenberg":
-    - pattern: '\b(miete.*von.*sonnenberg)\b'
-      priority: 95
-  
-  # Wohnen
-  "Internet":
-    - pattern: '\b(telekom|vodafone|1&1)\b'
-      priority: 85
-  
-  # Eigene Custom-Regeln hier hinzufügen
-  # "Meine Kategorie":
-  #   - '\b(pattern1|pattern2)\b'
+# 
+# HINWEIS: Auskommentiert, damit die umfangreichen Standard-Regeln im Code verwendet werden.
+# Diese umfassen ~50 Regeln für alle gängigen Kategorien.
+# 
+# Eigene Custom-Regeln können hier hinzugefügt werden - dann werden sie MIT den Standard-Regeln kombiniert:
+# 
+# categorization_rules:
+#   "Gehalt":
+#     - pattern: '\b(gehalt|lohn|salary)\b'
+#       priority: 100
+#   
+#   "Miete Sonnenberg":
+#     - pattern: '\b(miete.*von.*sonnenberg)\b'
+#       priority: 95
+#   
+#   "Internet":
+#     - pattern: '\b(telekom|vodafone|1&1)\b'
+#       priority: 85
 
