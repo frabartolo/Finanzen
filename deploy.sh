@@ -119,26 +119,42 @@ echo "5. Baue Anwendungs-Images..."
 docker compose build --no-cache
 print_success "Build abgeschlossen"
 
+# Generate Grafana datasource config (Grafana ersetzt keine Env-Vars in Provisioning)
+echo ""
+echo "6. Erzeuge Grafana-Datasource-Konfiguration..."
+if [ -f "grafana/provisioning/datasources/datasources.yaml.template" ]; then
+    if command -v envsubst &> /dev/null; then
+        envsubst '${DB_PASSWORD}' < grafana/provisioning/datasources/datasources.yaml.template \
+            > grafana/provisioning/datasources/datasources.yaml
+        chmod 600 grafana/provisioning/datasources/datasources.yaml
+        print_success "Datasource-Konfiguration mit DB-Passwort erzeugt"
+    else
+        print_warning "envsubst nicht gefunden - Grafana-Datasource könnte ohne Passwort starten (MariaDB-Zugriff fehlgeschlagen)"
+    fi
+else
+    print_warning "datasources.yaml.template nicht gefunden"
+fi
+
 # Stop running containers
 echo ""
-echo "6. Stoppe laufende Container..."
+echo "7. Stoppe laufende Container..."
 docker compose down
 print_success "Container gestoppt"
 
 # Start services
 echo ""
-echo "7. Starte Services..."
+echo "8. Starte Services..."
 docker compose up -d
 print_success "Services gestartet"
 
 # Wait for services to be ready
 echo ""
-echo "8. Warte auf Service-Initialisierung..."
+echo "9. Warte auf Service-Initialisierung..."
 sleep 10
 
 # Health checks
 echo ""
-echo "9. Health Checks..."
+echo "10. Health Checks..."
 
 # Check Database
 if docker compose exec -T finanzen_db mariadb -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; then
@@ -176,17 +192,17 @@ fi
 
 # Show running containers
 echo ""
-echo "10. Laufende Container:"
+echo "11. Laufende Container:"
 docker compose ps
 
 # Show recent logs
 echo ""
-echo "11. Letzte Log-Einträge:"
+echo "12. Letzte Log-Einträge:"
 docker compose logs --tail=20
 
 # Cleanup old backups
 echo ""
-echo "12. Räume alte Backups auf (älter als 30 Tage)..."
+echo "13. Räume alte Backups auf (älter als 30 Tage)..."
 find "$BACKUP_DIR" -name "backup_*.sql.gz" -mtime +30 -delete
 print_success "Cleanup abgeschlossen"
 

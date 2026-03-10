@@ -47,6 +47,7 @@ Thumbs.db
 
 # Grafana
 grafana/dashboards/*.json.bak
+grafana/provisioning/datasources/datasources.yaml
 grafana_data/
 
 # Temporäre Dateien

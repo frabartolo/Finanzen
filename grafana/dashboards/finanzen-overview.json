@@ -267,7 +267,7 @@
           },
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT \n  DATE_FORMAT(date, '%Y-%m-01') as time,\n  SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as 'Einnahmen',\n  ABS(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END)) as 'Ausgaben',\n  SUM(amount) as 'Saldo'\nFROM transactions\nWHERE date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)\nGROUP BY DATE_FORMAT(date, '%Y-%m')\nORDER BY time",
+          "rawSql": "SELECT \n  UNIX_TIMESTAMP(DATE_FORMAT(date, '%Y-%m-01')) as time,\n  SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as 'Einnahmen',\n  ABS(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END)) as 'Ausgaben',\n  SUM(amount) as 'Saldo'\nFROM transactions\nWHERE $__timeFilter(date)\nGROUP BY DATE_FORMAT(date, '%Y-%m')\nORDER BY time",
           "refId": "A"
         }
       ],
@@ -323,7 +323,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  c.name as category,\n  ABS(SUM(t.amount)) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount < 0\n  AND t.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)\nGROUP BY c.name\nORDER BY value DESC\nLIMIT 10",
+          "rawSql": "SELECT \n  c.name as category,\n  ABS(SUM(t.amount)) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount < 0\n  AND $__timeFilter(t.date)\nGROUP BY c.name\nORDER BY value DESC\nLIMIT 10",
           "refId": "A"
         }
       ],
@@ -379,7 +379,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  c.name as category,\n  SUM(t.amount) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount > 0\n  AND t.date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)\nGROUP BY c.name\nORDER BY value DESC",
+          "rawSql": "SELECT \n  c.name as category,\n  SUM(t.amount) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount > 0\n  AND $__timeFilter(t.date)\nGROUP BY c.name\nORDER BY value DESC",
           "refId": "A"
         }
       ],
@@ -548,7 +548,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  c.name as category,\n  ABS(SUM(t.amount)) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount < 0\n  AND t.date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)\nGROUP BY c.name\nORDER BY value DESC\nLIMIT 15",
+          "rawSql": "SELECT \n  c.name as category,\n  ABS(SUM(t.amount)) as value\nFROM transactions t\nJOIN categories c ON t.category_id = c.id\nWHERE t.amount < 0\n  AND $__timeFilter(t.date)\nGROUP BY c.name\nORDER BY value DESC\nLIMIT 15",
           "refId": "A"
         }
       ],
@@ -564,7 +564,7 @@
     "list": []
   },
   "time": {
-    "from": "now-30d",
+    "from": "now-2y",
     "to": "now"
   },
   "timepicker": {},

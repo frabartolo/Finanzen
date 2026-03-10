@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: MariaDB
+    type: mysql
+    access: proxy
+    url: finanzen_db:3306
+    database: finanzen
+    user: finanzen
+    secureJsonData:
+      password: ${DB_PASSWORD}
+    jsonData:
+      maxOpenConns: 100
+      maxIdleConns: 100
+      connMaxLifetime: 14400
+    editable: true
