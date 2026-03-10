@@ -141,6 +141,12 @@ echo "7. Stoppe laufende Container..."
 docker compose down
 print_success "Container gestoppt"
 
+# Entferne korrupte MariaDB tc.log (falls vorhanden - verhindert "Can't init tc log")
+if [ -f "data/db/tc.log" ]; then
+    rm -f data/db/tc.log 2>/dev/null || sudo rm -f data/db/tc.log 2>/dev/null
+    print_success "tc.log entfernt (war korrupt)"
+fi
+
 # Start services
 echo ""
 echo "8. Starte Services..."
