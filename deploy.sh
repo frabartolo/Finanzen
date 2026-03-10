@@ -126,7 +126,7 @@ if [ -f "grafana/provisioning/datasources/datasources.yaml.template" ]; then
     if command -v envsubst &> /dev/null; then
         envsubst '${DB_PASSWORD}' < grafana/provisioning/datasources/datasources.yaml.template \
             > grafana/provisioning/datasources/datasources.yaml
-        chmod 600 grafana/provisioning/datasources/datasources.yaml
+        chmod 644 grafana/provisioning/datasources/datasources.yaml
         print_success "Datasource-Konfiguration mit DB-Passwort erzeugt"
     else
         print_warning "envsubst nicht gefunden - Grafana-Datasource könnte ohne Passwort starten (MariaDB-Zugriff fehlgeschlagen)"
