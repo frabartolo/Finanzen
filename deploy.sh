@@ -85,6 +85,9 @@ if [ ! -f "config/settings.yaml" ]; then
     print_warning "settings.yaml nicht gefunden - wird beim ersten Start erstellt"
 fi
 
+# Berechtigungen sicherstellen (Grafana/Container brauchen Zugriff)
+sudo chown -R finanzen:finanzen /opt/finanzen
+
 # Create necessary directories
 echo ""
 echo "2. Erstelle notwendige Verzeichnisse..."
