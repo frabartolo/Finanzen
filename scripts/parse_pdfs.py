@@ -150,13 +150,15 @@ NOISE_DESC = frozenset({'bis', 'von', 'valuta', 'buchung', 'vorgang', 'verwendun
 def _parse_postbank_blocks(text_block):
     """
     Postbank mehrzeilig: SEPA Überweisung von <Name>, Verwendungszweck, Betrag.
-    Block = Datumszeile + Vorgang (mehrere Zeilen) + Betrag. Max 500 Zeichen Beschreibung.
+    Block = Datumszeile [Valuta] + Vorgang (mehrere Zeilen) + Betrag am Ende.
+    Betrag auch am Ende der letzten Beschreibungszeile möglich: "RINP Dauerauftrag  + 550,00"
     """
     out = []
+    # Datum, Beschreibung (inkl. Newlines), Betrag (+/- optional, auf gleicher oder nächster Zeile)
     pat = (
-        r'(\d{2}\.\d{2}\.\d{4})\s*\n'
-        r'([\s\S]{1,500}?)\n\s*'
-        r'(\d{1,3}(?:\.\d{3})*,\d{2})\s*'
+        r'(\d{2}\.\d{2}\.\d{4})\s*(?:\d{2}\.\d{2}\.\d{4}\s*\n?)?'
+        r'([\s\S]{1,500}?)\s*'
+        r'([+-]?\s*\d{1,3}(?:\.\d{3})*,\d{2})\s*'
     )
     for m in re.finditer(pat, text_block, re.MULTILINE):
         date_str, desc, amount_str = m.group(1), m.group(2).strip(), m.group(3)
@@ -164,7 +166,8 @@ def _parse_postbank_blocks(text_block):
         if not desc_clean or desc_clean.lower() in NOISE_DESC or len(desc_clean) < 4:
             continue
         try:
-            am = float(amount_str.replace('.', '').replace(',', '.'))
+            am_str_clean = amount_str.replace(' ', '').replace('.', '').replace(',', '.')
+            am = float(am_str_clean)
             out.append({
                 'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
                 'amount': am,
