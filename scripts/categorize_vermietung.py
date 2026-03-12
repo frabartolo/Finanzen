@@ -3,10 +3,10 @@
 Nachkategorisierung: Transaktionen den Kategorien „Vermietung und Verpachtung“ zuordnen.
 Nutzt config/vermietung_rules.yaml. Eignet sich für einmalige Anpassung und Analyse.
 
-Beispiele:
-  python3 scripts/categorize_vermietung.py --dry-run
-  python3 scripts/categorize_vermietung.py
-  python3 scripts/categorize_vermietung.py --force   # auch bereits kategorisierte prüfen
+Wird im App-Container ausgeführt (Datenbank + mysql.connector):
+  docker compose exec app python3 scripts/categorize_vermietung.py --dry-run
+  docker compose exec app python3 scripts/categorize_vermietung.py
+  docker compose exec app python3 scripts/categorize_vermietung.py --force
 """
 
 import sys
@@ -43,7 +43,14 @@ def run(dry_run=False, force=False):
         print("Keine Regeln in config/vermietung_rules.yaml gefunden.")
         return 0, 0
 
-    conn = get_db_connection()
+    try:
+        conn = get_db_connection()
+    except ModuleNotFoundError as e:
+        if "mysql" in str(e).lower():
+            print("Hinweis: mysql.connector fehlt. Skript im App-Container ausführen:")
+            print("  docker compose exec app python3 scripts/categorize_vermietung.py [--dry-run] [--force]")
+            sys.exit(1)
+        raise
     ph = get_db_placeholder()
     cat_ids = get_category_ids(conn)
     cursor = conn.cursor()
