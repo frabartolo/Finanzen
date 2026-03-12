@@ -95,31 +95,52 @@ def extract_metadata_from_path(pdf_path, inbox_dir):
 def parse_ing_transaction(text_block):
     """
     Parser für ING-DiBa Kontoauszüge
-    Format: Datum, Buchungstext, Betrag (oft mehrere Zeilen pro Transaktion)
+    Unterstützt:
+    - Tabellenformat: eine Zeile = Datum [Valuta] Beschreibung Betrag
+    - Blockformat: Datum, mehrzeilige Beschreibung, Betrag
     """
     transactions = []
-    
-    # ING Format: Datum am Anfang, dann Beschreibung über mehrere Zeilen, Betrag am Ende
-    # [\s\S]{1,500}? = beliebige Zeichen inkl. Newlines, max 500 – verhindert 27k-Zeichen-Falle
-    pattern = r'(\d{2}\.\d{2}\.\d{4})\s*\n([\s\S]{1,500}?)\n\s*([-]?\d+\.\d{3},\d{2}|[-]?\d+,\d{2})\s*[+-]?'
-    matches = re.finditer(pattern, text_block, re.MULTILINE)
-    
-    for match in matches:
-        date_str = match.group(1)
-        description = match.group(2).strip().replace('\n', ' ')[:MAX_DESCRIPTION_LENGTH]
-        amount_str = match.group(3).replace('.', '').replace(',', '.')
-        
+    seen = set()  # (date, amount, desc) für Duplikat-Vermeidung
+
+    def add_tx(date_str, desc, amount_str):
+        key = (date_str, amount_str, desc[:80])
+        if key in seen:
+            return
+        seen.add(key)
         try:
+            am = float(amount_str.replace('.', '').replace(',', '.'))
             transactions.append({
                 'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
-                'amount': float(amount_str),
-                'description': description,
+                'amount': am,
+                'description': desc.strip()[:MAX_DESCRIPTION_LENGTH],
                 'bank': 'ING-DiBa'
             })
-        except (ValueError, AttributeError) as e:
-            logger.debug(f"ING-Parser: Konnte Zeile nicht parsen: {e}")
-            continue
-    
+        except (ValueError, AttributeError):
+            pass
+
+    # ING Tabellenformat: Zeile = "DD.MM.YYYY [DD.MM.YYYY] Beschreibung  Betrag"
+    # z.B. "06.03.2025  06.03.2025  Gutschrift/Dauerauftrag Stefan Wilhelm  2.000,00"
+    # Betrag am Zeilenende, optional +/-
+    table_pattern = (
+        r'(\d{2}\.\d{2}\.\d{4})\s+'
+        r'(?:\d{2}\.\d{2}\.\d{4}\s+)?'
+        r'(.+?)\s+'
+        r'([-]?\d{1,3}(?:\.\d{3})*,\d{2}|[-]?\d+,\d{2})\s*[+-]?\s*$'
+    )
+    for line in text_block.split('\n'):
+        m = re.search(table_pattern, line, re.MULTILINE)
+        if m:
+            add_tx(m.group(1), m.group(2), m.group(3))
+
+    # ING Blockformat: Datum, mehrzeilige Beschreibung, Betrag
+    block_pattern = (
+        r'(\d{2}\.\d{2}\.\d{4})\s*\n([\s\S]{1,500}?)\n\s*'
+        r'([-]?\d+\.\d{3},\d{2}|[-]?\d+,\d{2})\s*[+-]?'
+    )
+    for match in re.finditer(block_pattern, text_block, re.MULTILINE):
+        desc = match.group(2).strip().replace('\n', ' ')
+        add_tx(match.group(1), desc, match.group(3))
+
     return transactions
 
 
