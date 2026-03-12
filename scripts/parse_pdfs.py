@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 PDF_DIR = Path("data/inbox")
 PROCESSED_DIR = Path("data/processed")
+MAX_DESCRIPTION_LENGTH = 500  # Verhindert 27k-Zeichen-Fehler bei Parser-Pathern
 
 
 def extract_metadata_from_path(pdf_path, inbox_dir):
@@ -69,18 +70,13 @@ def parse_ing_transaction(text_block):
     transactions = []
     
     # ING Format: Datum am Anfang, dann Beschreibung über mehrere Zeilen, Betrag am Ende
-    # Beispiel:
-    # 01.01.2024
-    # REWE Sagt Danke
-    # Kartenzahlung
-    # -50,00
-    
-    pattern = r'(\d{2}\.\d{2}\.\d{4})\s*\n(.+?)\n\s*([-]?\d+\.\d{3},\d{2}|[-]?\d+,\d{2})\s*[+-]?'
-    matches = re.finditer(pattern, text_block, re.MULTILINE | re.DOTALL)
+    # [\s\S]{1,500}? = beliebige Zeichen inkl. Newlines, max 500 – verhindert 27k-Zeichen-Falle
+    pattern = r'(\d{2}\.\d{2}\.\d{4})\s*\n([\s\S]{1,500}?)\n\s*([-]?\d+\.\d{3},\d{2}|[-]?\d+,\d{2})\s*[+-]?'
+    matches = re.finditer(pattern, text_block, re.MULTILINE)
     
     for match in matches:
         date_str = match.group(1)
-        description = match.group(2).strip().replace('\n', ' ')
+        description = match.group(2).strip().replace('\n', ' ')[:MAX_DESCRIPTION_LENGTH]
         amount_str = match.group(3).replace('.', '').replace(',', '.')
         
         try:
@@ -97,13 +93,49 @@ def parse_ing_transaction(text_block):
     return transactions
 
 
+NOISE_DESC = frozenset({'bis', 'von', 'valuta', 'buchung', 'vorgang', 'verwendungszweck', 'kundenreferenz', 'referenz'})
+
+
+def _parse_postbank_blocks(text_block):
+    """
+    Postbank mehrzeilig: SEPA Überweisung von <Name>, Verwendungszweck, Betrag.
+    Block = Datumszeile + Vorgang (mehrere Zeilen) + Betrag. Max 500 Zeichen Beschreibung.
+    """
+    out = []
+    pat = (
+        r'(\d{2}\.\d{2}\.\d{4})\s*\n'
+        r'([\s\S]{1,500}?)\n\s*'
+        r'(\d{1,3}(?:\.\d{3})*,\d{2})\s*'
+    )
+    for m in re.finditer(pat, text_block, re.MULTILINE):
+        date_str, desc, amount_str = m.group(1), m.group(2).strip(), m.group(3)
+        desc_clean = desc.replace('\n', ' ').strip()[:MAX_DESCRIPTION_LENGTH]
+        if not desc_clean or desc_clean.lower() in NOISE_DESC or len(desc_clean) < 4:
+            continue
+        try:
+            am = float(amount_str.replace('.', '').replace(',', '.'))
+            out.append({
+                'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
+                'amount': am,
+                'description': desc_clean,
+                'bank': 'Postbank'
+            })
+        except (ValueError, AttributeError):
+            pass
+    return out
+
+
 def parse_postbank_transaction(text_block):
     """
     Parser für Postbank Kontoauszüge
     Format: Oft tabellarisch mit Buchungstag, Wertstellung, Vorgang, Betrag
+    Oder mehrzeilig: SEPA Überweisung von <Name>, Verwendungszweck ...
     """
     transactions = []
-    
+    block_result = _parse_postbank_blocks(text_block)
+    if block_result:
+        return block_result
+
     # Postbank Format 1: DD.MM. Beschreibung Betrag
     # Beispiel: 01.01. Gehalt 2.500,00+
     pattern1 = r'(\d{2}\.\d{2}\.)\s+(.+?)\s+(\d+[\.,]\d{2,3}[\.,]\d{2})\s*([+-])'
@@ -121,18 +153,19 @@ def parse_postbank_transaction(text_block):
         match1 = re.search(pattern1, line)
         if match1:
             date_str, description, amount_str, sign = match1.groups()
-            # Jahr ergänzen (aktuelles Jahr annehmen)
+            desc = description.strip()[:MAX_DESCRIPTION_LENGTH]
+            if desc.lower() in NOISE_DESC or len(desc) < 5:
+                desc = "Unbekannter Vorgang (Postbank Import)"
             current_year = datetime.now().year
             date_str = f"{date_str}{current_year}"
             amount_str = amount_str.replace('.', '').replace(',', '.')
             if sign == '-':
                 amount_str = '-' + amount_str
-            
             try:
                 transactions.append({
                     'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
                     'amount': float(amount_str),
-                    'description': description.strip(),
+                    'description': desc,
                     'bank': 'Postbank'
                 })
                 continue
@@ -143,13 +176,15 @@ def parse_postbank_transaction(text_block):
         match2 = re.search(pattern2, line)
         if match2:
             date_str, description, amount_str = match2.groups()
+            desc = description.strip()[:MAX_DESCRIPTION_LENGTH]
+            if desc.lower() in NOISE_DESC or (len(desc) < 5 and not desc.replace('.', '').replace(',', '').isdigit()):
+                desc = "Unbekannter Vorgang (Postbank Import)"
             amount_str = amount_str.replace('.', '').replace(',', '.')
-            
             try:
                 transactions.append({
                     'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
                     'amount': float(amount_str),
-                    'description': description.strip(),
+                    'description': desc,
                     'bank': 'Postbank'
                 })
             except (ValueError, AttributeError) as e:
@@ -171,7 +206,7 @@ def parse_generic_transaction(line):
         return {
             'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
             'amount': float(amount_str.replace(',', '.').replace('+', '')),
-            'description': description.strip()
+            'description': (description.strip() or '')[:MAX_DESCRIPTION_LENGTH]
         }
     
     # Format 2: DD.MM.YY Beschreibung Betrag
@@ -187,9 +222,9 @@ def parse_generic_transaction(line):
         return {
             'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
             'amount': float(amount_str.replace(',', '.').replace('+', '')),
-            'description': description.strip()
+            'description': (description.strip() or '')[:MAX_DESCRIPTION_LENGTH]
         }
-    
+
     return None
 
 
@@ -318,13 +353,12 @@ def store(data, account_id=None):
                     logger.debug(f"   ⏭️ Duplikat übersprungen: {trans['description'][:30]}...")
                     continue
                 
-                # Neue Transaktion einfügen
+                desc = (trans['description'] or '')[:MAX_DESCRIPTION_LENGTH]
                 cursor.execute(
                     f"""INSERT INTO transactions 
                         (account_id, date, amount, description, source) 
                         VALUES ({ph}, {ph}, {ph}, {ph}, {ph})""",
-                    (account_id, trans['date'], trans['amount'], 
-                     trans['description'], 'pdf')
+                    (account_id, trans['date'], trans['amount'], desc, 'pdf')
                 )
                 stored_count += 1
         else:

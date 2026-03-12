@@ -1,8 +1,17 @@
 #!/bin/bash
 # Deployment Script für lokale oder manuelle Deployments
+# Optionen: --reset-db   Transaktionen und Dokumente vor Deployment leeren
 set -e
 
+RESET_DB=false
+for arg in "$@"; do
+    case "$arg" in
+        --reset-db) RESET_DB=true ;;
+    esac
+done
+
 ENVIRONMENT=${1:-production}
+[ "$1" = "--reset-db" ] && ENVIRONMENT=production
 COMPOSE_FILE="docker-compose.yml"
 BACKUP_DIR="./backups"
 
@@ -197,6 +206,17 @@ else
     print_error "Cron-Container läuft nicht!"
     docker compose logs cron
     exit 1
+fi
+
+# Optional: Datenbank leeren (Transaktionen + Dokumente)
+if [ "$RESET_DB" = true ]; then
+    echo ""
+    echo "10b. Leere Transaktionen und Dokumente (--reset-db)..."
+    if docker compose exec -T app python scripts/reset_db.py --confirm 2>/dev/null; then
+        print_success "Datenbank geleert"
+    else
+        print_warning "Reset fehlgeschlagen"
+    fi
 fi
 
 # Show running containers
