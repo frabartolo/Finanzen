@@ -59,8 +59,41 @@ def fetch_transactions_for_account(account: Dict) -> List[Dict]:
         transactions = []
         for sepa_account in accounts:
             if sepa_account.iban == account.get('iban'):
-                trans = client.get_transactions(sepa_account, start_date)
-                transactions.extend(trans)
+                raw = client.get_transactions(sepa_account, start_date)
+                for t in raw:
+                    # Einheitliches Format: Verwendungszweck + Auftraggeber für bessere Kategorisierung
+                    if hasattr(t, 'data') and isinstance(getattr(t, 'data'), dict):
+                        d = t.data
+                        purpose = d.get('purpose', '') or ''
+                        name = d.get('applicant_name', '') or ''
+                        ref = d.get('customer_reference', '') or ''
+                        parts = [p for p in [purpose, name, ref] if p]
+                        description = ' | '.join(parts) if parts else purpose or '—'
+                        amount_val = d.get('amount')
+                        if isinstance(amount_val, dict):
+                            amount = float(amount_val.get('amount', 0))
+                        else:
+                            amount = float(amount_val or 0)
+                        booking = d.get('booking_date')
+                        if hasattr(booking, 'date'):
+                            booking = booking.date()
+                        transactions.append({
+                            'date': booking or datetime.now().date(),
+                            'amount': amount,
+                            'purpose': description,
+                        })
+                    elif isinstance(t, dict):
+                        purpose = t.get('purpose', '')
+                        name = t.get('applicant_name', '')
+                        description = f"{purpose} | {name}".strip(' |') if name else (purpose or '—')
+                        transactions.append({
+                            'date': t.get('date', datetime.now().date()),
+                            'amount': float(t.get('amount', 0)),
+                            'purpose': description,
+                        })
+                    else:
+                        continue
+                break
         
         logger.info(f"✅ {len(transactions)} Transaktionen abgerufen")
         return transactions

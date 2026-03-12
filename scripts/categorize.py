@@ -107,7 +107,9 @@ class Categorizer:
             # Einnahmen
             CategoryRule(r'\b(gehalt|lohn|salary)\b', 'Gehalt', priority=100),
             CategoryRule(r'\b(bonus|prämie|sonderzahlung)\b', 'Bonus', priority=100),
-            # Vermietung Einnahmen (spezifisch vor allgemein)
+            # Vermietung Einnahmen (Kontoauszug: SEPA Überweisung von … Verwendungszweck …)
+            CategoryRule(r'\b(monica\s*jung|mietameixa|sebastian\s*juros)\b', 'Miete Sonnenberg', priority=95),
+            CategoryRule(r'\b(miete\s*und\s*nebenkosten|miete\s*wohnung)\b', 'Miete Sonnenberg', priority=94),
             CategoryRule(r'\b(sonnenberg|ameixa|juros|jung)\b', 'Miete Sonnenberg', priority=92),
             CategoryRule(r'\b(neuhof|zum neuhof)\b', 'Miete Neuhof', priority=92),
             CategoryRule(r'\b(weinberg|pacht.*einnahme|verpachtung)\b', 'Miete Weinbergsgelände', priority=92),
