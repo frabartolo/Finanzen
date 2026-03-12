@@ -1,17 +1,22 @@
 # Regeln für Nachkategorisierung: Vermietung und Verpachtung
 # Wird von scripts/categorize_vermietung.py verwendet (nachträglich + Analyse).
 # Reihenfolge = Priorität (erster Treffer gewinnt).
+# Tipp: Mit --verbose siehst du fehlende Kategorien und Beispiel-Buchungstexte.
 
 rules:
   # Einnahmen – Objekt zuordnen (ggf. Mieter-Namen anpassen)
   - category: "Miete Sonnenberg"
     description_pattern: "(?i)(sonnenberg|ameixa|juros|jung|mietzahlung.*sonnenberg)"
-    amount_min: 0.01   # nur Einnahmen
+    amount_min: 0.01
   - category: "Miete Neuhof"
     description_pattern: "(?i)(neuhof|zum neuhof|mietzahlung.*neuhof|überweisung.*miete)"
     amount_min: 0.01
   - category: "Miete Weinbergsgelände"
     description_pattern: "(?i)(weinberg|pacht.*einnahme|verpachtung)"
+    amount_min: 0.01
+  # Fallback: Einnahme mit "Miete" ohne Objekt → Sonnenberg (anpassen wenn nötig)
+  - category: "Miete Sonnenberg"
+    description_pattern: "(?i)(miete|mietzahlung|mieteingang)"
     amount_min: 0.01
 
   # Ausgaben – Objekt / Pacht
@@ -19,11 +24,11 @@ rules:
     description_pattern: "(?i)(pacht|pachtzins|pachtzahlung)"
     amount_max: -0.01
   - category: "Vermietung Sonnenberg"
-    description_pattern: "(?i)(sonnenberg.*(reparatur|kosten|steuer|versicherung)|grundsteuer.*sonnenberg)"
+    description_pattern: "(?i)(sonnenberg)"
     amount_max: -0.01
   - category: "Vermietung Zum Neuhof"
-    description_pattern: "(?i)(neuhof.*(reparatur|kosten|steuer|versicherung)|zum neuhof|grundsteuer.*neuhof)"
+    description_pattern: "(?i)(neuhof|zum neuhof)"
     amount_max: -0.01
   - category: "Vermietung Weinbergsgelände"
-    description_pattern: "(?i)(weinberg.*(kosten|steuer|pacht)|grundsteuer.*weinberg)"
+    description_pattern: "(?i)(weinberg)"
     amount_max: -0.01

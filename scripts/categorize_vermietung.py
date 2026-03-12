@@ -37,7 +37,7 @@ def get_category_ids(conn):
     return {name: id_ for id_, name in cur.fetchall()}
 
 
-def run(dry_run=False, force=False):
+def run(dry_run=False, force=False, verbose=False):
     rules = load_vermietung_rules()
     if not rules:
         print("Keine Regeln in config/vermietung_rules.yaml gefunden.")
@@ -53,8 +53,18 @@ def run(dry_run=False, force=False):
         raise
     ph = get_db_placeholder()
     cat_ids = get_category_ids(conn)
-    cursor = conn.cursor()
 
+    # Prüfen: Welche Regel-Kategorien fehlen in der DB?
+    rule_cats = {r.get("category") for r in rules if r.get("category")}
+    missing = rule_cats - set(cat_ids.keys())
+    if missing:
+        print("Hinweis: Diese Kategorien aus den Regeln fehlen in der DB (evtl. setup_db.py ausführen):")
+        for c in sorted(missing):
+            print(f"  - {c}")
+    if verbose:
+        print("In DB vorhandene Vermietungs-Kategorien:", [c for c in sorted(cat_ids.keys()) if "miete" in c.lower() or "vermietung" in c.lower() or "pacht" in c.lower()])
+
+    cursor = conn.cursor()
     if force:
         cursor.execute("SELECT id, description, amount FROM transactions")
     else:
@@ -63,6 +73,12 @@ def run(dry_run=False, force=False):
         )
     rows = cursor.fetchall()
     updated = 0
+
+    if verbose and rows:
+        print("Beispiel-Buchungstexte (erste 5):")
+        for tid, description, amount in rows[:5]:
+            desc = (description or "").strip()[:60]
+            print(f"  id={tid} amount={amount} | {desc!r}")
 
     for tid, description, amount in rows:
         description = (description or "").strip()
@@ -98,12 +114,13 @@ def main():
     p = argparse.ArgumentParser(description="Vermietung/Verpachtung nachkategorisieren")
     p.add_argument("--dry-run", action="store_true", help="Nur anzeigen, nichts ändern")
     p.add_argument("--force", action="store_true", help="Auch bereits kategorisierte prüfen")
+    p.add_argument("-v", "--verbose", action="store_true", help="Hinweise + Beispiel-Buchungstexte anzeigen")
     args = p.parse_args()
 
     print("Vermietung/Verpachtung – Nachkategorisierung")
     if args.dry_run:
         print("(Dry-Run – keine Änderungen)")
-    updated, total = run(dry_run=args.dry_run, force=args.force)
+    updated, total = run(dry_run=args.dry_run, force=args.force, verbose=args.verbose)
     print(f"Zugeordnet: {updated} von {total} Transaktionen.")
 
 
