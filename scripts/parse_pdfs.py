@@ -15,6 +15,14 @@ import shutil
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# OCR (optional) – Fallback bei kaputten Fonts
+try:
+    from pdf2image import convert_from_path
+    import pytesseract
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+
 from scripts.utils import get_db_connection, get_db_placeholder, ensure_dir
 
 # Logging konfigurieren
@@ -24,9 +32,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-PDF_DIR = Path("data/inbox")
-PROCESSED_DIR = Path("data/processed")
+# Absolute Pfade (cwd in Container: /app), verhindert Pfad-Probleme beim Verschieben
+PDF_DIR = (Path(__file__).parent.parent / "data" / "inbox").resolve()
+PROCESSED_DIR = (Path(__file__).parent.parent / "data" / "processed").resolve()
 MAX_DESCRIPTION_LENGTH = 500  # Verhindert 27k-Zeichen-Fehler bei Parser-Pathern
+OCR_DPI = 200  # DPI für PDF→Bild (höher = genauer, langsamer)
+
+
+def extract_text_with_ocr(pdf_path: Path) -> str:
+    """
+    PDF via Tesseract OCR lesen (Fallback bei kaputten Fonts).
+    Rendert jede Seite als Bild, führt OCR aus.
+    """
+    if not OCR_AVAILABLE:
+        return ""
+    try:
+        images = convert_from_path(str(pdf_path), dpi=OCR_DPI, fmt="png")
+        texts = []
+        for img in images:
+            # deu+eng für Kontoauszüge (Deutsch + engl. Fachbegriffe)
+            text = pytesseract.image_to_string(img, lang="deu+eng")
+            texts.append(text or "")
+        return "\n".join(texts)
+    except Exception as e:
+        logger.warning(f"   OCR fehlgeschlagen: {e}")
+        return ""
 
 
 def extract_metadata_from_path(pdf_path, inbox_dir):
@@ -240,6 +270,21 @@ def detect_bank_from_text(text):
     return None
 
 
+def _parse_transactions_from_text(text: str, detected_bank: str) -> list:
+    """Transaktionen aus Text extrahieren (ING, Postbank, generisch)."""
+    transactions = []
+    if detected_bank == 'ING-DiBa':
+        transactions = parse_ing_transaction(text)
+    elif detected_bank == 'Postbank':
+        transactions = parse_postbank_transaction(text)
+    if not transactions:
+        for line in text.split('\n'):
+            tx = parse_generic_transaction(line)
+            if tx:
+                transactions.append(tx)
+    return transactions
+
+
 def parse_pdf(path, metadata=None):
     """PDF-Datei parsen und Transaktionsdaten extrahieren"""
     logger.info(f"📄 Parse PDF: {path.name}")
@@ -248,30 +293,30 @@ def parse_pdf(path, metadata=None):
         with pdfplumber.open(path) as pdf:
             text = "\n".join(page.extract_text() or "" for page in pdf.pages)
         
-        # Bank automatisch erkennen
         detected_bank = detect_bank_from_text(text)
         if detected_bank:
             logger.info(f"   🏦 Bank erkannt: {detected_bank}")
             if metadata:
                 metadata['detected_bank'] = detected_bank
         
-        transactions = []
+        transactions = _parse_transactions_from_text(text, detected_bank)
         
-        # Bankspezifische Parser verwenden
-        if detected_bank == 'ING-DiBa':
-            transactions = parse_ing_transaction(text)
-        elif detected_bank == 'Postbank':
-            transactions = parse_postbank_transaction(text)
+        # OCR-Fallback: Text vorhanden, aber 0 Transaktionen (kaputte Fonts bei PDFs)
+        if not transactions and len(text) > 150 and OCR_AVAILABLE:
+            logger.info("   🔍 Versuche OCR (Tesseract) – Font-Extraktion lieferte keine Transaktionen")
+            ocr_text = extract_text_with_ocr(path)
+            if ocr_text:
+                bank_from_ocr = detect_bank_from_text(ocr_text) or detected_bank
+                transactions = _parse_transactions_from_text(ocr_text, bank_from_ocr)
+                if transactions:
+                    logger.info(f"   ✓ OCR erfolgreich: {len(transactions)} Transaktion(en)")
+                    if bank_from_ocr:
+                        detected_bank = bank_from_ocr
+                        if metadata:
+                            metadata['detected_bank'] = detected_bank
+                    text = ocr_text
         
-        # Fallback: Generischer Parser (zeilenweise)
-        if not transactions:
-            logger.info("   ℹ️ Verwende generischen Parser")
-            for line in text.split('\n'):
-                transaction = parse_generic_transaction(line)
-                if transaction:
-                    transactions.append(transaction)
-        
-        # Fallback: Wenn keine strukturierten Transaktionen gefunden wurden
+        # Fallback: Als Dokument speichern
         if not transactions:
             logger.warning(f"⚠️ Keine Transaktionen in {path.name} gefunden, speichere als Dokument")
             amount_match = re.search(r"Betrag\s+([-+]?\d+[.,]\d{2})", text)
@@ -397,14 +442,15 @@ def move_with_structure(source, inbox_dir, processed_dir):
     Verschiebt Datei unter Beibehaltung der Verzeichnisstruktur
     z.B. inbox/2024/01/file.pdf -> processed/2024/01/file.pdf
     """
-    relative_path = source.relative_to(inbox_dir)
-    target = processed_dir / relative_path
-    
-    # Zielverzeichnis erstellen
+    src = Path(source).resolve()
+    inbox = Path(inbox_dir).resolve()
+    proc = Path(processed_dir).resolve()
+    if not src.exists():
+        raise FileNotFoundError(f"Datei nicht mehr vorhanden (evtl. bereits verschoben): {source}")
+    relative_path = src.relative_to(inbox)
+    target = proc / relative_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Datei verschieben
-    shutil.move(str(source), str(target))
+    shutil.move(str(src), str(target))
     logger.debug(f"→ Verschoben nach: {relative_path}")
 
 
