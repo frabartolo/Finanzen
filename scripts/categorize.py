@@ -107,6 +107,10 @@ class Categorizer:
             # Einnahmen
             CategoryRule(r'\b(gehalt|lohn|salary)\b', 'Gehalt', priority=100),
             CategoryRule(r'\b(bonus|prämie|sonderzahlung)\b', 'Bonus', priority=100),
+            # Vermietung Einnahmen (spezifisch vor allgemein)
+            CategoryRule(r'\b(sonnenberg|ameixa|juros|jung)\b', 'Miete Sonnenberg', priority=92),
+            CategoryRule(r'\b(neuhof|zum neuhof)\b', 'Miete Neuhof', priority=92),
+            CategoryRule(r'\b(weinberg|pacht.*einnahme|verpachtung)\b', 'Miete Weinbergsgelände', priority=92),
             CategoryRule(r'\b(miete.*eingang|mietzahlung.*von)\b', 'Miete Sonnenberg', priority=90),
             CategoryRule(r'\b(überweisung.*miete)\b', 'Miete Neuhof', priority=90),
             
@@ -147,6 +151,12 @@ class Categorizer:
             CategoryRule(r'\b(hausrat.*versicherung|hausrat)\b', 'Hausrat', priority=85),
             CategoryRule(r'\b(rechtsschutz|berufsunfähigkeit)\b', 'Versicherungen', priority=75),
             CategoryRule(r'\b(versicherung|insurance)\b', 'Versicherungen', priority=60),
+            
+            # Vermietung Ausgaben (Pacht, Objektkosten)
+            CategoryRule(r'\b(pacht|pachtzins|verpachtung.*zahlung)\b', 'Vermietung Pacht', priority=85),
+            CategoryRule(r'\b(sonnenberg.*kosten|sonnenberg.*reparatur|grundsteuer.*sonnenberg)\b', 'Vermietung Sonnenberg', priority=85),
+            CategoryRule(r'\b(neuhof.*kosten|neuhof.*reparatur|zum neuhof.*reparatur|grundsteuer.*neuhof)\b', 'Vermietung Zum Neuhof', priority=85),
+            CategoryRule(r'\b(weinberg.*kosten|weinberg.*steuer|weinberg.*pacht|grundsteuer.*weinberg)\b', 'Vermietung Weinbergsgelände', priority=85),
             
             # Online-Käufe - KORRIGIERT
             CategoryRule(r'\b(amazon|ebay)\b', 'Online Shopping', priority=70),

@@ -3,11 +3,23 @@ categories:
   income:
     - "Gehalt"
     - "Bonus"
-    - "Miete Sonnenberg"
-    - "Miete Neuhof"
+    # Vermietung und Verpachtung – Einnahmen (Sonnenberg, Zum Neuhof, Weinbergsgelände)
+    - name: "Vermietung Einnahmen"
+      children:
+        - "Miete Sonnenberg"
+        - "Miete Neuhof"
+        - "Miete Weinbergsgelände"
     - "Sonstiges Einkommen"
   
   expenses:
+    # Vermietung und Verpachtung – Ausgaben (Pacht, Objekte)
+    - name: "Vermietung Ausgaben"
+      children:
+        - "Vermietung Pacht"
+        - "Vermietung Sonnenberg"
+        - "Vermietung Zum Neuhof"
+        - "Vermietung Weinbergsgelände"
+    
     # Lebensmittel & Gastronomie
     - "Lebensmittel"
     
