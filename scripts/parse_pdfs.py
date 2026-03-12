@@ -176,18 +176,50 @@ def _parse_postbank_blocks(text_block):
     return out
 
 
+def _extract_statement_year(text_block: str) -> int:
+    """Jahr aus Kontoauszug-Header extrahieren (z.B. 'vom 06.03.2015 bis')"""
+    m = re.search(r'(?:vom|bis)\s+\d{2}\.\d{2}\.(\d{4})', text_block)
+    return int(m.group(1)) if m else datetime.now().year
+
+
 def parse_postbank_transaction(text_block):
     """
     Parser für Postbank Kontoauszüge
-    Format: Oft tabellarisch mit Buchungstag, Wertstellung, Vorgang, Betrag
-    Oder mehrzeilig: SEPA Überweisung von <Name>, Verwendungszweck ...
+    Unterstützt: Tabellenformat (Buchung, Wert, Vorgang, Soll/Haben), Blockformat
     """
     transactions = []
     block_result = _parse_postbank_blocks(text_block)
     if block_result:
         return block_result
 
-    # Postbank Format 1: DD.MM. Beschreibung Betrag
+    statement_year = _extract_statement_year(text_block)
+
+    # Postbank Tabellenformat: DD.MM. [DD.MM.] Vorgang  +Betrag / -Betrag
+    # z.B. "06.03. 06.03. Gutschr.SEPA Stefan Wilhelm ... + 740,63" oder "... - 28,80"
+    table_pattern = (
+        r'(\d{2}\.\d{2}\.)\s+(?:\d{2}\.\d{2}\.\s+)?'
+        r'(.+?)\s+'
+        r'([+-]?\s*\d{1,3}(?:\.\d{3})*,\d{2})\s*[+-]?\s*$'
+    )
+    for line in text_block.split('\n'):
+        m = re.search(table_pattern, line.strip(), re.MULTILINE)
+        if m:
+            date_str = f"{m.group(1)}{statement_year}"
+            desc = m.group(2).strip()[:MAX_DESCRIPTION_LENGTH]
+            am_str = m.group(3).replace(' ', '').replace('.', '').replace(',', '.')
+            if desc.lower() not in NOISE_DESC and len(desc) >= 4:
+                try:
+                    transactions.append({
+                        'date': datetime.strptime(date_str, '%d.%m.%Y').date(),
+                        'amount': float(am_str),
+                        'description': desc,
+                        'bank': 'Postbank'
+                    })
+                except (ValueError, AttributeError):
+                    pass
+            continue
+
+    # Postbank Format 1: DD.MM. Beschreibung Betrag +/-
     # Beispiel: 01.01. Gehalt 2.500,00+
     pattern1 = r'(\d{2}\.\d{2}\.)\s+(.+?)\s+(\d+[\.,]\d{2,3}[\.,]\d{2})\s*([+-])'
     
