@@ -20,4 +20,7 @@
   `docker compose exec app python3 scripts/categorize_vermietung.py`  
   Nutzt `config/vermietung_rules.yaml`. Mit `--dry-run` nur anzeigen, mit `--force` auch bereits kategorisierte Transaktionen prüfen.
 
-- **Mieter zu Objekten:** In `vermietung_rules.yaml` und in `scripts/categorize.py` sind Ameixa, Juros, Jung aktuell **Sonnenberg** zugeordnet. Wenn ein Mieter zu **Zum Neuhof** gehört, die entsprechende Regel auf `Miete Neuhof` umstellen.
+- **Mieter zu Objekten:**  
+  **Zum Neuhof:** Monica Jung, Sebastian Juros.  
+  **Sonnenberg:** Ameixa.  
+  Anpassung in `config/vermietung_rules.yaml` und `scripts/categorize.py`.

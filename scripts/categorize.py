@@ -107,11 +107,11 @@ class Categorizer:
             # Einnahmen
             CategoryRule(r'\b(gehalt|lohn|salary)\b', 'Gehalt', priority=100),
             CategoryRule(r'\b(bonus|prämie|sonderzahlung)\b', 'Bonus', priority=100),
-            # Vermietung Einnahmen (Kontoauszug: SEPA Überweisung von … Verwendungszweck …)
-            CategoryRule(r'\b(monica\s*jung|mietameixa|sebastian\s*juros)\b', 'Miete Sonnenberg', priority=95),
-            CategoryRule(r'\b(miete\s*und\s*nebenkosten|miete\s*wohnung)\b', 'Miete Sonnenberg', priority=94),
-            CategoryRule(r'\b(sonnenberg|ameixa|juros|jung)\b', 'Miete Sonnenberg', priority=92),
+            # Vermietung Einnahmen – Zum Neuhof: Monica Jung, Sebastian Juros
+            CategoryRule(r'\b(monica\s*jung|sebastian\s*juros|miete\s*und\s*nebenkosten|miete\s*wohnung)\b', 'Miete Neuhof', priority=95),
             CategoryRule(r'\b(neuhof|zum neuhof)\b', 'Miete Neuhof', priority=92),
+            # Sonnenberg: Ameixa
+            CategoryRule(r'\b(mietameixa|sonnenberg|ameixa)\b', 'Miete Sonnenberg', priority=92),
             CategoryRule(r'\b(weinberg|pacht.*einnahme|verpachtung)\b', 'Miete Weinbergsgelände', priority=92),
             CategoryRule(r'\b(miete.*eingang|mietzahlung.*von)\b', 'Miete Sonnenberg', priority=90),
             CategoryRule(r'\b(überweisung.*miete)\b', 'Miete Neuhof', priority=90),

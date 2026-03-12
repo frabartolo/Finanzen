@@ -4,21 +4,22 @@
 # Tipp: Mit --verbose siehst du fehlende Kategorien und Beispiel-Buchungstexte.
 
 rules:
-  # Einnahmen – exakte Formulierungen von Kontoauszügen (SEPA Überweisung von … Verwendungszweck …)
-  - category: "Miete Sonnenberg"
-    description_pattern: "(?i)(monica\\s*jung|jung\\s*\\||mietameixa|ameixa\\s*\\||juros\\s*\\||sebastian\\s*juros|sonnenberg|ameixa|juros|jung)"
-    amount_min: 0.01
-  - category: "Miete Sonnenberg"
-    description_pattern: "(?i)(miete\\s*und\\s*nebenkosten|mietzahlung.*sonnenberg)"
+  # Einnahmen – Zum Neuhof: Monica Jung, Sebastian Juros
+  - category: "Miete Neuhof"
+    description_pattern: "(?i)(monica\\s*jung|jung\\s*\\||sebastian\\s*juros|juros\\s*\\||miete\\s*und\\s*nebenkosten|miete\\s*wohnung)"
     amount_min: 0.01
   - category: "Miete Neuhof"
     description_pattern: "(?i)(neuhof|zum neuhof|mietzahlung.*neuhof)"
     amount_min: 0.01
-  - category: "Miete Weinbergsgelände"
-    description_pattern: "(?i)(weinberg|pacht.*einnahme|verpachtung)"
+  # Einnahmen – Sonnenberg: Ameixa
+  - category: "Miete Sonnenberg"
+    description_pattern: "(?i)(mietameixa|ameixa\\s*\\||sonnenberg|ameixa)"
     amount_min: 0.01
   - category: "Miete Sonnenberg"
-    description_pattern: "(?i)(miete\\s*wohnung)"
+    description_pattern: "(?i)(mietzahlung.*sonnenberg)"
+    amount_min: 0.01
+  - category: "Miete Weinbergsgelände"
+    description_pattern: "(?i)(weinberg|pacht.*einnahme|verpachtung)"
     amount_min: 0.01
   # Fallback: Einnahme mit "Miete" ohne Objekt → Sonnenberg (anpassen wenn nötig)
   - category: "Miete Sonnenberg"
