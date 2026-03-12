@@ -10,9 +10,9 @@
 
 ## Anpassung
 
-- **Neue Kategorien in DB:** Nach Änderung an `categories.yaml` einmalig ausführen:  
-  `docker compose exec app python3 scripts/setup_db.py`  
-  (oder nur Kategorien neu einspielen – ggf. doppelte Einträge prüfen.)
+- **Neue Kategorien in DB:** Nach Änderung an `categories.yaml` fehlende Kategorien nachziehen:  
+  `docker compose exec app python3 scripts/setup_db.py --categories-only`  
+  (Volles Setup inkl. Schema: `scripts/setup_db.py` ohne Option.)
 
 - **Automatische Kategorisierung (neu):** Läuft wie bisher über `categorize.py` (inkl. Vermietungs-Regeln).
 

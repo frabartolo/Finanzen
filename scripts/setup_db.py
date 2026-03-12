@@ -165,6 +165,20 @@ def populate_accounts():
 
 def main():
     """Hauptfunktion"""
+    import argparse
+    parser = argparse.ArgumentParser(description="Datenbank initialisieren / Kategorien nachziehen")
+    parser.add_argument("--categories-only", action="store_true",
+                        help="Nur Kategorien aus categories.yaml einfügen (fehlende ergänzen)")
+    args = parser.parse_args()
+
+    if args.categories_only:
+        print("📋 Nur Kategorien nachziehen...")
+        if populate_categories():
+            print("✅ Kategorien aktualisiert.")
+        else:
+            sys.exit(1)
+        return
+
     print("🚀 Starte Datenbank-Setup...")
     print("-" * 50)
     
