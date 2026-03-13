@@ -15,6 +15,14 @@ settings:
   pdf_parsing:
     enabled: true
     watch_folder: "data/inbox"
+  
+  # Ollama als Fallback für PDF-Transaktionsextraktion (nach Tesseract)
+  # Erfordert: Ollama läuft auf Host (z.B. openclaw), OLLAMA_HOST=0.0.0.0
+  ollama:
+    enabled: false
+    host: "http://openclaw:11434"
+    model: "qwen2.5:7b"  # oder deepseek-r1, llama3.2, etc.
+    timeout: 60
     
   database:
     type: "mariadb"

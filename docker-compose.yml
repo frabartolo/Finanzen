@@ -17,11 +17,12 @@ services:
       - TZ=${TZ}
       - PYTHONUNBUFFERED=1
       - DB_TYPE=mariadb
-      - DB_HOST=${DB_HOST}  # Zurück zur .env Variable
+      - DB_HOST=${DB_HOST}
       - DB_PORT=3306
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://openclaw:11434}
     restart: unless-stopped
     networks:
       - finanzen_net
@@ -91,11 +92,12 @@ services:
     environment:
       - TZ=${TZ}
       - DB_TYPE=mariadb
-      - DB_HOST=${DB_HOST}  # Zurück zur .env Variable
+      - DB_HOST=${DB_HOST}
       - DB_PORT=3306
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://openclaw:11434}
     command: >
       sh -c "crontab /app/cron/crontab && crond -f"
     restart: unless-stopped

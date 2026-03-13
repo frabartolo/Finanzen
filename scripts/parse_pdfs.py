@@ -4,13 +4,16 @@ PDF-Kontoauszüge parsen und in Datenbank speichern
 Unterstützt rekursive Verarbeitung von Verzeichnisstrukturen
 """
 
+import os
 import sys
-from pathlib import Path
-import pdfplumber
+import json
 import re
 import logging
-from datetime import datetime
 import shutil
+from pathlib import Path
+from datetime import datetime
+from urllib.request import urlopen, Request
+from urllib.error import URLError, HTTPError
 
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -23,7 +26,7 @@ try:
 except ImportError:
     OCR_AVAILABLE = False
 
-from scripts.utils import get_db_connection, get_db_placeholder, ensure_dir
+from scripts.utils import get_db_connection, get_db_placeholder, ensure_dir, load_config
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -37,6 +40,85 @@ PDF_DIR = (Path(__file__).parent.parent / "data" / "inbox").resolve()
 PROCESSED_DIR = (Path(__file__).parent.parent / "data" / "processed").resolve()
 MAX_DESCRIPTION_LENGTH = 500  # Verhindert 27k-Zeichen-Fehler bei Parser-Pathern
 OCR_DPI = 200  # DPI für PDF→Bild (höher = genauer, langsamer)
+
+
+def _get_ollama_config() -> dict:
+    """Ollama-Konfiguration aus settings laden."""
+    try:
+        cfg = load_config("settings")
+        s = cfg.get("settings", cfg)
+        return (s or cfg).get("ollama", {})
+    except Exception:
+        return {}
+
+
+def _ollama_available() -> bool:
+    o = _get_ollama_config()
+    return bool(o.get("enabled")) and bool(o.get("host"))
+
+
+def extract_with_ollama(text: str, bank_hint: str = None) -> list:
+    """
+    Sendet Text an Ollama-LLM und bittet um strukturierte Transaktions-Extraktion.
+    Returns: Liste von {date, amount, description}
+    """
+    cfg = _get_ollama_config()
+    if not cfg.get("enabled"):
+        return []
+    host = os.getenv("OLLAMA_HOST") or cfg.get("host", "")
+    if not host:
+        return []
+    host = host.rstrip("/")
+    model = cfg.get("model", "qwen2.5:7b")
+    timeout = int(cfg.get("timeout", 60))
+    prompt = f"""Extrahiere alle Bank-Transaktionen (Umsätze) aus dem folgenden Kontoauszug-Text.
+Erkennbare Bank: {bank_hint or 'unbekannt'}
+
+Antworte NUR mit einem JSON-Array, ein Objekt pro Transaktion:
+[{{"date": "DD.MM.YYYY", "amount": Zahl (negativ für Abbuchung), "description": "Beschreibung"}}]
+
+Beispiele:
+- Einnahme 550,00 am 01.03.2023: {{"date": "01.03.2023", "amount": 550.00, "description": "SEPA Überweisung von ..."}}
+- Ausgabe 28,80 am 09.03.2023: {{"date": "09.03.2023", "amount": -28.80, "description": "..."}}
+
+Keine Transaktionen gefunden: []
+
+Text:
+---
+{text[:8000]}
+---"""
+    try:
+        body = json.dumps({
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+        }).encode("utf-8")
+        req = Request(
+            f"{host}/api/generate",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+        response_text = data.get("response", "").strip()
+        # JSON aus Antwort extrahieren (evtl. in Markdown-Codeblock)
+        json_match = re.search(r"\[[\s\S]*\]", response_text)
+        if not json_match:
+            return []
+        arr = json.loads(json_match.group(0))
+        out = []
+        for item in arr:
+            if isinstance(item, dict) and "date" in item and "amount" in item:
+                out.append({
+                    "date": item["date"],
+                    "amount": float(item["amount"]),
+                    "description": str(item.get("description", ""))[:MAX_DESCRIPTION_LENGTH],
+                })
+        return out
+    except (URLError, HTTPError, json.JSONDecodeError, ValueError) as e:
+        logger.warning(f"   Ollama-Fallback fehlgeschlagen: {e}")
+        return []
 
 
 def extract_text_with_ocr(pdf_path: Path) -> str:
@@ -371,6 +453,24 @@ def parse_pdf(path, metadata=None):
                         if metadata:
                             metadata['detected_bank'] = detected_bank
                     text = ocr_text
+
+        # Ollama-Fallback: LLM extrahiert Transaktionen aus Text (nach Tesseract)
+        if not transactions and len(text) > 100 and _ollama_available():
+            logger.info("   🤖 Versuche Ollama-LLM – OCR/regex lieferte keine Transaktionen")
+            raw_list = extract_with_ollama(text, detected_bank)
+            for item in raw_list:
+                try:
+                    dt = datetime.strptime(item["date"], "%d.%m.%Y").date()
+                    transactions.append({
+                        "date": dt,
+                        "amount": float(item["amount"]),
+                        "description": (item.get("description") or "")[:MAX_DESCRIPTION_LENGTH],
+                        "bank": detected_bank or "Postbank",
+                    })
+                except (ValueError, KeyError):
+                    pass
+            if transactions:
+                logger.info(f"   ✓ Ollama erfolgreich: {len(transactions)} Transaktion(en)")
         
         # Fallback: Als Dokument speichern
         if not transactions:
