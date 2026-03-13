@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 PDF_DIR = (Path(__file__).parent.parent / "data" / "inbox").resolve()
 PROCESSED_DIR = (Path(__file__).parent.parent / "data" / "processed").resolve()
 MAX_DESCRIPTION_LENGTH = 500  # Verhindert 27k-Zeichen-Fehler bei Parser-Pathern
-OCR_DPI = 200  # DPI für PDF→Bild (höher = genauer, langsamer)
+OCR_DPI = 300  # DPI für PDF→Bild (höher = genauer, langsamer; 300 hilft bei OCR-Fehlern)
 
 
 def _get_ollama_config() -> dict:
@@ -76,8 +76,11 @@ def extract_with_ollama(text: str, bank_hint: str = None) -> list:
     prompt = f"""Extrahiere alle Bank-Transaktionen (Umsätze) aus dem folgenden Kontoauszug-Text.
 Erkennbare Bank: {bank_hint or 'unbekannt'}
 
+HINWEIS: Der Text stammt aus OCR und kann Fehler enthalten (z.B. O/0, 1/I/l, pbmA=SEPA, aauerauftrag=Dauerauftrag).
+Interpretiere Beträge und Daten auch bei Zeichenverwechslungen. Typische Muster: Überweisung, Lastschrift, Dauerauftrag.
+
 Antworte NUR mit einem JSON-Array, ein Objekt pro Transaktion:
-[{{"date": "DD.MM.YYYY", "amount": Zahl (negativ für Abbuchung), "description": "Beschreibung"}}]
+[{{"date": "DD.MM.YYYY", "amount": Zahl (negativ für Abbuchung, positiv für Gutschrift), "description": "Beschreibung"}}]
 
 Beispiele:
 - Einnahme 550,00 am 01.03.2023: {{"date": "01.03.2023", "amount": 550.00, "description": "SEPA Überweisung von ..."}}
@@ -104,9 +107,12 @@ Text:
         with urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode())
         response_text = data.get("response", "").strip()
+        # Deepseek-R1/Reasoning-Modelle: <think>-Block entfernen
+        response_text = re.sub(r"<think>[\s\S]*?</think>", "", response_text, flags=re.IGNORECASE).strip()
         # JSON aus Antwort extrahieren (evtl. in Markdown-Codeblock)
         json_match = re.search(r"\[[\s\S]*\]", response_text)
         if not json_match:
+            logger.debug("Ollama-Antwort enthält kein JSON-Array: %s", response_text[:500])
             return []
         arr = json.loads(json_match.group(0))
         out = []
