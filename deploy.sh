@@ -199,6 +199,14 @@ else
     exit 1
 fi
 
+# Check pdfplumber (PDF-Parsing)
+if docker compose exec -T app python -c "import pdfplumber" 2>/dev/null; then
+    print_success "pdfplumber (PDF-Parsing) verfügbar"
+else
+    print_error "pdfplumber fehlt im App-Container! Bitte requirements.txt prüfen."
+    exit 1
+fi
+
 # Check Cron Container
 if docker compose ps cron | grep -q "Up"; then
     print_success "Cron-Container läuft"

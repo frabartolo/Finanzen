@@ -18,6 +18,8 @@ from urllib.error import URLError, HTTPError
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import pdfplumber
+
 # OCR (optional) – Fallback bei kaputten Fonts
 try:
     from pdf2image import convert_from_path
