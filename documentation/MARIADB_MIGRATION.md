@@ -7,32 +7,32 @@ Das Projekt wurde von PostgreSQL auf **MariaDB 11.2** umgestellt.
 ### Geänderte Dateien
 
 1. **Docker & Infrastruktur**
-   - [docker-compose.yml](docker-compose.yml) - MariaDB Container statt PostgreSQL
-   - [requirements.txt](requirements.txt) - `mysql-connector-python` statt `psycopg2`
-   - [db/schema.sql](db/schema.sql) - MySQL-kompatibles Schema
+   - [docker-compose.yml](../docker-compose.yml) - MariaDB Container statt PostgreSQL
+   - [requirements.txt](../requirements.txt) - `mysql-connector-python` statt `psycopg2`
+   - [db/schema.sql](../db/schema.sql) - MySQL-kompatibles Schema
 
 2. **Scripts mit .env-Integration**
-   - [deploy.sh](deploy.sh) - Liest Passwörter aus `.env`
-   - [health-check.sh](health-check.sh) - Liest Passwörter aus `.env`
-   - [rollback.sh](rollback.sh) - Liest Passwörter aus `.env`
-   - **NEU:** [validate-env.sh](validate-env.sh) - Validiert `.env` Konfiguration
+   - [deploy.sh](../deploy.sh) - Liest Passwörter aus `.env`
+   - [health-check.sh](../health-check.sh) - Liest Passwörter aus `.env`
+   - [rollback.sh](../rollback.sh) - Liest Passwörter aus `.env`
+   - **NEU:** [validate-env.sh](../validate-env.sh) - Validiert `.env` Konfiguration
 
 3. **Anwendungscode**
-   - [scripts/utils.py](scripts/utils.py) - MariaDB-Verbindungslogik
-   - [config/settings.yaml](config/settings.yaml) - Datenbank-Typ auf `mariadb`
+   - [scripts/utils.py](../scripts/utils.py) - MariaDB-Verbindungslogik
+   - [config/settings.yaml](../config/settings.yaml) - Datenbank-Typ auf `mariadb`
 
 4. **Grafana**
-   - [grafana/provisioning/datasources.yaml](grafana/provisioning/datasources.yaml) - MySQL-Datasource
+   - [grafana/provisioning/datasources.yaml](../grafana/provisioning/datasources.yaml) - MySQL-Datasource
 
 5. **CI/CD**
-   - [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml) - Deployment-Pipeline
-   - [.github/workflows/backup.yml](.github/workflows/backup.yml) - Backup-Workflow
-   - [.github/workflows/health-check.yml](.github/workflows/health-check.yml) - Health-Check
+   - [.github/workflows/ci-cd.yml](../.github/workflows/ci-cd.yml) - Deployment-Pipeline
+   - [.github/workflows/backup.yml](../.github/workflows/backup.yml) - Backup-Workflow
+   - [.github/workflows/health-check.yml](../.github/workflows/health-check.yml) - Health-Check
 
 6. **Dokumentation**
-   - [.env.example](.env.example) - MariaDB-Konfiguration
+   - [.env.example](../.env.example) - MariaDB-Konfiguration
    - [DEPLOYMENT.md](DEPLOYMENT.md) - Aktualisierte Anleitung
-   - [README.md](README.md) - Aktualisierte Quick-Start-Anleitung
+   - [README.md](../README.md) - Aktualisierte Quick-Start-Anleitung
 
 ## 🔐 Sicherheitsverbesserungen
 
@@ -202,4 +202,4 @@ Database: finanzen
 - **Backups**: Automatisch täglich um 02:00 Uhr
 - **Retention**: 30 Tage
 
-Bei Fragen oder Problemen siehe [DEPLOYMENT.md](DEPLOYMENT.md) oder [README.md](README.md).
+Bei Fragen oder Problemen siehe [DEPLOYMENT.md](DEPLOYMENT.md) oder [README.md](../README.md).

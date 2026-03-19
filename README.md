@@ -218,9 +218,13 @@ Login: admin / admin (beim ersten Start ändern!)
 
 ## 📝 Dokumentation
 
-- [📖 Vollständige Dokumentation](DOKUMENTATION.md) - Installation, Konfiguration, API-Referenz
-- [📋 Changelog](CHANGELOG.md) - Version History & Änderungen
-- [🐛 Troubleshooting](DOKUMENTATION.md#troubleshooting) - Häufige Probleme & Lösungen
+Alle ausführlichen Anleitungen liegen im Ordner [`documentation/`](documentation/):
+
+- [📖 Vollständige Dokumentation](documentation/DOKUMENTATION.md) – Installation, Konfiguration, API-Referenz
+- [📋 Changelog](documentation/CHANGELOG.md) – Version History & Änderungen
+- [🐛 Troubleshooting](documentation/DOKUMENTATION.md#troubleshooting) – Häufige Probleme & Lösungen
+- [📄 PDF-Import](documentation/PDF_IMPORT_ANLEITUNG.md)
+- [🚀 Deployment](documentation/DEPLOYMENT.md)
 
 ## 📝 Lizenz
 
