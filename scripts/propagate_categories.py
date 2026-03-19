@@ -119,6 +119,24 @@ def propagate(
         ref_exact.setdefault(key, []).append(cat_id)
         ref_rows.append((acc_id if per_account else None, norm, cat_id))
 
+    if per_account:
+        labeled_by_acc = Counter(acc for _t, acc, _d, _c in labeled)
+        unlabeled_by_acc = Counter(acc for _t, acc, _d in unlabeled)
+        logger.info(
+            "Gelabelt pro Konto (account_id → Anzahl): %s | Unkategorisiert pro Konto: %s",
+            dict(labeled_by_acc),
+            dict(unlabeled_by_acc),
+        )
+        # Hinweis wenn gelabelte und unkategorisierte kaum überlappen
+        labeled_accs = set(labeled_by_acc)
+        unlabeled_accs = set(unlabeled_by_acc)
+        overlap = labeled_accs & unlabeled_accs
+        if unlabeled_accs and labeled_accs and not overlap:
+            logger.warning(
+                "Gelabelte und unkategorisierte Transaktionen liegen auf verschiedenen Konten – "
+                "mit Standard (pro Konto) gibt es keine Treffer. Versuche: --global-scope"
+            )
+
     # Auflösen Mehrheit pro key
     exact_map: Dict[Tuple[Optional[int], str], int] = {}
     for key, cats in ref_exact.items():
@@ -201,6 +219,11 @@ def propagate(
         applied,
         len(updates),
     )
+    if applied == 0 and len(unlabeled) > 0 and len(labeled) > 0 and per_account:
+        logger.warning(
+            "Keine Zuordnung – oft liegen gelabelte und unkategorisierte auf verschiedenen Konten. "
+            "Erneut mit --global-scope versuchen."
+        )
     return applied, len(unlabeled)
 
 

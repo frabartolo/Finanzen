@@ -183,10 +183,11 @@ docker compose exec app python3 scripts/setup_db.py --categories-only
 # Mit Force-Option (auch bereits kategorisierte neu zuordnen)
 docker compose exec app python3 scripts/categorize.py --force
 
-# Variante A: Kategorien von manuell/regelbasiert gelabelten Zeilen auf gleiche/ähnliche Texte übertragen
-# (Dry-Run zuerst; dann --apply). Optional: --collapse-dates für gleiche Buchungstexte mit wechselndem Datum
+# Variante A: Kategorien von gelabelten Zeilen auf gleiche/ähnliche Texte übertragen
+# Standard: nur innerhalb desselben Kontos. Wenn nichts passiert: --global-scope (über alle Konten)
 docker compose exec app python3 scripts/propagate_categories.py
 docker compose exec app python3 scripts/propagate_categories.py --apply --collapse-dates
+docker compose exec app python3 scripts/propagate_categories.py --apply --collapse-dates --global-scope
 
 # Credentials verwalten
 docker compose exec app python3 scripts/credential_manager.py list
