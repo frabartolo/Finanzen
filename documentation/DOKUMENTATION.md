@@ -173,6 +173,10 @@ docker compose exec app python3 scripts/parse_pdfs.py
 # Transaktionen kategorisieren
 docker compose exec app python3 scripts/categorize.py
 
+# Unkategorisierte Buchungstexte ansehen (für neue Regeln in categorization_rules.yaml)
+docker compose exec app python3 scripts/categorize.py --peek 40
+docker compose exec app python3 scripts/categorize.py --peek-frequent 25
+
 # Nach neuen Einträgen in config/categories.yaml: Kategorien in die DB übernehmen
 docker compose exec app python3 scripts/setup_db.py --categories-only
 

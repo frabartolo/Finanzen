@@ -9,7 +9,7 @@ import argparse
 import logging
 from collections import Counter
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -200,6 +200,67 @@ class Categorizer:
             return 0, 0
 
 
+def peek_uncategorized_distinct(limit: int = 30) -> None:
+    """Hilft bei Regel-Ergänzung: Stichprobe verschiedener Buchungstexte ohne Kategorie."""
+    cap = max(limit * 80, 400)
+    with db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT description FROM transactions
+            WHERE category_id IS NULL
+              AND description IS NOT NULL
+              AND TRIM(description) <> ''
+            ORDER BY date DESC, id DESC
+            LIMIT %s
+            """,
+            (cap,),
+        )
+        rows = cur.fetchall()
+
+    seen: Set[str] = set()
+    samples: List[str] = []
+    for (desc,) in rows:
+        key = (desc or "")[:140].strip().lower()
+        if len(key) < 4 or key in seen:
+            continue
+        seen.add(key)
+        samples.append((desc or "").replace("\n", " ").strip()[:220])
+        if len(samples) >= limit:
+            break
+
+    print(f"\n── Unkategorisiert: {len(samples)} Beispiele (von bis zu {cap} jüngsten Zeilen, grob dedupliziert) ──")
+    for i, line in enumerate(samples, 1):
+        print(f"{i:3}. {line}")
+    print("── Ende (Muster in config/categorization_rules.yaml ergänzen) ──\n")
+
+
+def peek_uncategorized_frequent(limit: int = 20) -> None:
+    """Häufigste Text-Anfänge (100 Zeichen) unter den Unkategorisierten."""
+    with db_connection() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT SUBSTRING(description, 1, 100) AS prefix, COUNT(*) AS cnt
+            FROM transactions
+            WHERE category_id IS NULL
+              AND description IS NOT NULL
+              AND TRIM(description) <> ''
+            GROUP BY prefix
+            ORDER BY cnt DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+        rows = cur.fetchall()
+
+    print(f"\n── Top {len(rows)} häufigste Anfänge (100 Zeichen) unkategorisiert ──")
+    for prefix, cnt in rows:
+        p = (prefix or "").replace("\n", " ").strip()
+        print(f"{cnt:4}x  {p}")
+    print("── Ende ──\n")
+
+
 def main():
     """Hauptfunktion"""
     parser = argparse.ArgumentParser(description="Transaktionen kategorisieren")
@@ -214,11 +275,32 @@ def main():
         action="store_true",
         help="Detaillierte Debug-Ausgabe",
     )
+    parser.add_argument(
+        "--peek",
+        type=int,
+        metavar="N",
+        default=0,
+        help="N Beispiel-Beschreibungen (unkategorisiert) ausgeben und beenden",
+    )
+    parser.add_argument(
+        "--peek-frequent",
+        type=int,
+        metavar="N",
+        default=0,
+        help="Häufigste Text-Anfänge (100 Zeichen) der Unkategorisierten ausgeben und beenden",
+    )
 
     args = parser.parse_args()
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    if args.peek > 0:
+        peek_uncategorized_distinct(min(args.peek, 200))
+        return
+    if args.peek_frequent > 0:
+        peek_uncategorized_frequent(min(args.peek_frequent, 100))
+        return
 
     categorizer = Categorizer()
     categorized, total = categorizer.categorize_all(force_recategorize=args.force)
