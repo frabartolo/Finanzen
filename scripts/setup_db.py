@@ -68,6 +68,43 @@ def update_schema_for_hierarchy():
         return True
 
 
+def update_schema_transaction_hash():
+    """Spalte transaction_hash + Unique-Index für idempotente Imports (bestehende DBs)."""
+    print("🔄 Prüfe Schema transaction_hash...")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SHOW COLUMNS FROM transactions LIKE 'transaction_hash'")
+        if not cursor.fetchone():
+            print("   Füge transaction_hash-Spalte hinzu...")
+            cursor.execute(
+                "ALTER TABLE transactions ADD COLUMN transaction_hash VARCHAR(64) NULL "
+                "COMMENT 'SHA-256 hex, idempotenter Import'"
+            )
+            conn.commit()
+            print(
+                "   ⚠️  Einmalig ausführen: "
+                "python scripts/backfill_transaction_hash.py --confirm"
+            )
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.statistics "
+            "WHERE table_schema = DATABASE() AND table_name = 'transactions' "
+            "AND index_name = 'uq_transactions_account_hash'"
+        )
+        if cursor.fetchone()[0] == 0:
+            print(
+                "⚠️  Unique-Index fehlt – nach Backfill anlegen: "
+                "python scripts/backfill_transaction_hash.py --confirm"
+            )
+        else:
+            print("✅ transaction_hash-Index vorhanden")
+    except Exception as e:
+        print(f"⚠️ Schema-Update transaction_hash: {e}")
+    finally:
+        conn.close()
+    return True
+
+
 def insert_category_tree(cursor, items, cat_type, parent_id=None):
     """Rekursives Einfügen von Kategorien und Unterkategorien"""
     ph = get_db_placeholder()
@@ -169,7 +206,16 @@ def main():
     parser = argparse.ArgumentParser(description="Datenbank initialisieren / Kategorien nachziehen")
     parser.add_argument("--categories-only", action="store_true",
                         help="Nur Kategorien aus categories.yaml einfügen (fehlende ergänzen)")
+    parser.add_argument("--migrations-only", action="store_true",
+                        help="Nur Schema-Migrationen (Hierarchie, transaction_hash)")
     args = parser.parse_args()
+
+    if args.migrations_only:
+        print("🔄 Nur Schema-Migrationen...")
+        update_schema_for_hierarchy()
+        update_schema_transaction_hash()
+        print("✅ Fertig.")
+        return
 
     if args.categories_only:
         print("📋 Nur Kategorien nachziehen...")
@@ -185,6 +231,7 @@ def main():
     success = True
     success &= init_database()
     success &= update_schema_for_hierarchy()
+    success &= update_schema_transaction_hash()
     success &= populate_categories()
     success &= populate_accounts()
     

@@ -1,0 +1,8 @@
+# MariaDB-Port nur für lokales Debugging (DBeaver, mysql-Client vom Host)
+# Nutzung: docker compose -f docker-compose.yml -f docker-compose.debug-db.yml up -d
+# Bind an 127.0.0.1, nicht auf alle Interfaces
+
+services:
+  finanzen_db:
+    ports:
+      - "127.0.0.1:3306:3306"

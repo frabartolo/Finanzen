@@ -13,7 +13,12 @@ import time
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection, get_db_placeholder
+from scripts.utils import (
+    load_config,
+    get_db_connection,
+    get_db_placeholder,
+    compute_transaction_hash,
+)
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -177,20 +182,19 @@ def save_transactions_to_db(transactions: List[Dict], account_id: int) -> int:
     
     try:
         for trans in transactions:
-            # Duplikatsprüfung (gleiche Transaktion bereits vorhanden?)
-            cursor.execute(
-                """SELECT id FROM transactions 
-                   WHERE account_id = %s AND date = %s AND amount = %s AND description = %s""",
-                (account_id, trans['date'], trans['amount'], trans['purpose'])
+            desc = (
+                f"{trans.get('purpose', '')} | {trans.get('applicant_name', '')}"
+            ).strip(" |")
+            tx_hash = compute_transaction_hash(
+                account_id, trans["date"], trans["amount"], desc, "fints"
             )
-            
-            if cursor.fetchone() is None:
-                cursor.execute(
-                    """INSERT INTO transactions (account_id, date, amount, description, source)
-                       VALUES (%s, %s, %s, %s, 'fints')""",
-                    (account_id, trans['date'], trans['amount'], 
-                     f"{trans['purpose']} | {trans['applicant_name']}")
-                )
+            cursor.execute(
+                """INSERT IGNORE INTO transactions
+                   (account_id, date, amount, description, source, transaction_hash)
+                   VALUES (%s, %s, %s, %s, 'fints', %s)""",
+                (account_id, trans["date"], trans["amount"], desc, tx_hash),
+            )
+            if cursor.rowcount > 0:
                 inserted += 1
         
         conn.commit()

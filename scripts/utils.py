@@ -120,3 +120,31 @@ def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def compute_transaction_hash(
+    account_id: int,
+    date,
+    amount,
+    description: str,
+    source: str,
+) -> str:
+    """
+    Deterministischer Hash für idempotente Imports (Duplikat-Schutz).
+    Gleiche logische Buchung = gleicher Hash bei gleichem account_id, date, amount, description, source.
+    """
+    import hashlib
+    from decimal import Decimal, InvalidOperation
+
+    if hasattr(date, "isoformat"):
+        dkey = date.isoformat()
+    else:
+        dkey = str(date)
+    try:
+        aq = Decimal(str(amount)).quantize(Decimal("0.01"))
+        akey = format(aq, "f")
+    except (InvalidOperation, TypeError, ValueError):
+        akey = str(amount)
+    desc = (description or "").strip()
+    key = f"{account_id}|{dkey}|{akey}|{desc}|{source or ''}"
+    return hashlib.sha256(key.encode("utf-8")).hexdigest()
+
+

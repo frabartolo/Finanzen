@@ -51,6 +51,16 @@ DB_PASSWORD=${DB_PASSWORD:-change_me_secure_password}
 DB_USER=${DB_USER:-finanzen}
 DB_NAME=${DB_NAME:-finanzen}
 
+# Grafana: kein Default-Passwort mehr in docker-compose (Sicherheit)
+if [ -z "${GRAFANA_ADMIN_PASSWORD:-}" ]; then
+    print_error "GRAFANA_ADMIN_PASSWORD ist nicht gesetzt – bitte in .env eintragen (siehe .env.example)"
+    exit 1
+fi
+if [ "$GRAFANA_ADMIN_PASSWORD" = "admin" ]; then
+    print_error "GRAFANA_ADMIN_PASSWORD darf nicht \"admin\" sein"
+    exit 1
+fi
+
 # Navigate to project directory and pull latest changes
 echo "0. Aktualisiere Code-Repository..."
 cd /opt/finanzen
@@ -181,6 +191,14 @@ else
     print_error "Datenbank nicht erreichbar!"
     docker compose logs finanzen_db
     exit 1
+fi
+
+echo ""
+echo "10a. Schema-Migrationen (transaction_hash)..."
+if docker compose exec -T app python scripts/setup_db.py --migrations-only; then
+    print_success "Schema-Migrationen angewendet"
+else
+    print_warning "Schema-Migrationen fehlgeschlagen (App-Container prüfen)"
 fi
 
 # Check Grafana

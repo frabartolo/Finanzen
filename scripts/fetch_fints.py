@@ -12,7 +12,7 @@ import logging
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection
+from scripts.utils import load_config, get_db_connection, compute_transaction_hash
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -123,23 +123,19 @@ def save_transactions(transactions: List[Dict], account_id: int) -> None:
     inserted = 0
     for trans in transactions:
         try:
-            # Prüfen ob Transaktion bereits existiert (Duplikatsvermeidung)
+            desc = trans["purpose"] or ""
+            tx_hash = compute_transaction_hash(
+                account_id, trans["date"], trans["amount"], desc, "fints"
+            )
             cursor.execute(
                 """
-                SELECT id FROM transactions 
-                WHERE account_id = %s AND date = %s AND amount = %s AND description = %s
+                INSERT IGNORE INTO transactions
+                (account_id, date, amount, description, source, transaction_hash)
+                VALUES (%s, %s, %s, %s, 'fints', %s)
                 """,
-                (account_id, trans['date'], trans['amount'], trans['purpose'])
+                (account_id, trans["date"], trans["amount"], desc, tx_hash),
             )
-            
-            if cursor.fetchone() is None:
-                cursor.execute(
-                    """
-                    INSERT INTO transactions (account_id, date, amount, description, source)
-                    VALUES (%s, %s, %s, %s, 'fints')
-                    """,
-                    (account_id, trans['date'], trans['amount'], trans['purpose'])
-                )
+            if cursor.rowcount > 0:
                 inserted += 1
         except Exception as e:
             logger.error(f"❌ Fehler beim Speichern der Transaktion: {e}")

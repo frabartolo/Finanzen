@@ -280,6 +280,15 @@ curl http://localhost:3000/api/health
 docker compose ps
 ```
 
+## 🔒 Produktions-Härtung (Stand 2026)
+
+- **Grafana:** Image gepinnt (`grafana/grafana:11.4.3`), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
+- **MariaDB:** Standardmäßig kein Port `3306` auf dem Host; nur im Docker-Netz erreichbar. Für lokalen DB-Zugriff:  
+  `docker compose -f docker-compose.yml -f docker-compose.debug-db.yml up -d`
+- **Transaktionen:** Spalte `transaction_hash` + Unique-Index für idempotente Imports. Nach Upgrade einmalig:  
+  `docker compose exec app python scripts/backfill_transaction_hash.py --confirm`  
+  (setzt Hashes, entfernt echte Duplikate, legt Index an). `deploy.sh` führt `setup_db.py --migrations-only` aus.
+
 ## 📝 Weitere Ressourcen
 
 - [GitHub Actions Dokumentation](https://docs.github.com/en/actions)

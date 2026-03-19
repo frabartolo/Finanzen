@@ -45,8 +45,7 @@ services:
     restart: unless-stopped
     networks:
       - finanzen_net
-    ports:
-      - "3306:3306"
+    # Kein Port-Mapping: DB nur im Docker-Netz (Grafana/App). Extern: docker-compose.debug-db.yml
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --log-bin=mysql-bin
     # Health check für bessere Überwachung
     healthcheck:
@@ -58,13 +57,13 @@ services:
 
   # Grafana für Visualisierung
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.4.3
     container_name: finanzen_grafana
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_INSTALL_PLUGINS=
-      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources

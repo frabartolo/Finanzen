@@ -76,6 +76,7 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
    # Sichere Passwörter setzen:
    # - DB_PASSWORD: Mindestens 12 Zeichen
    # - DB_ROOT_PASSWORD: Mindestens 12 Zeichen
+   # - GRAFANA_ADMIN_PASSWORD: nicht „admin“ (Pflicht für docker compose / deploy.sh)
    # - ENCRYPTION_KEY: Generierter Key von oben
    
    # Konfiguration validieren

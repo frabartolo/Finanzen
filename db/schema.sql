@@ -25,12 +25,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     description TEXT,
     category_id INT,
     source VARCHAR(50), -- 'fints', 'pdf', 'manual'
+    transaction_hash VARCHAR(64) NULL COMMENT 'SHA-256 hex, idempotenter Import',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
     INDEX idx_transactions_date (date),
     INDEX idx_transactions_account (account_id),
-    INDEX idx_transactions_category (category_id)
+    INDEX idx_transactions_category (category_id),
+    UNIQUE KEY uq_transactions_account_hash (account_id, transaction_hash)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS documents (

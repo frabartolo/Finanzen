@@ -28,7 +28,13 @@ try:
 except ImportError:
     OCR_AVAILABLE = False
 
-from scripts.utils import get_db_connection, get_db_placeholder, ensure_dir, load_config
+from scripts.utils import (
+    get_db_connection,
+    get_db_placeholder,
+    ensure_dir,
+    load_config,
+    compute_transaction_hash,
+)
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -551,25 +557,22 @@ def store(data, account_id=None):
         # Transaktionen speichern
         if data.get('transactions'):
             for trans in data['transactions']:
-                # Prüfe ob Transaktion bereits existiert (Duplikate vermeiden)
-                cursor.execute(
-                    f"""SELECT COUNT(*) FROM transactions 
-                        WHERE account_id = {ph} AND date = {ph} 
-                        AND amount = {ph} AND description = {ph}""",
-                    (account_id, trans['date'], trans['amount'], trans['description'])
-                )
-                if cursor.fetchone()[0] > 0:
-                    logger.debug(f"   ⏭️ Duplikat übersprungen: {trans['description'][:30]}...")
-                    continue
-                
                 desc = (trans['description'] or '')[:MAX_DESCRIPTION_LENGTH]
-                cursor.execute(
-                    f"""INSERT INTO transactions 
-                        (account_id, date, amount, description, source) 
-                        VALUES ({ph}, {ph}, {ph}, {ph}, {ph})""",
-                    (account_id, trans['date'], trans['amount'], desc, 'pdf')
+                tx_hash = compute_transaction_hash(
+                    account_id, trans["date"], trans["amount"], desc, "pdf"
                 )
-                stored_count += 1
+                cursor.execute(
+                    f"""INSERT IGNORE INTO transactions 
+                        (account_id, date, amount, description, source, transaction_hash) 
+                        VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})""",
+                    (account_id, trans["date"], trans["amount"], desc, "pdf", tx_hash),
+                )
+                if cursor.rowcount > 0:
+                    stored_count += 1
+                else:
+                    logger.debug(
+                        f"   ⏭️ Duplikat übersprungen (hash): {desc[:30]}..."
+                    )
         else:
             # Fallback: Als Dokument speichern
             cursor.execute(
