@@ -134,6 +134,20 @@ rules:
     pattern: '\b(weinberg.*kosten|weinberg.*steuer|weinberg.*pacht|grundsteuer.*weinberg)\b'
     priority: 85
 
+  # Steuern & Bank (Kapitalertrag, ING/Postbank typische Texte)
+  - category: Steuern
+    pattern: '\b(kapitalertragsteuer|solidaritätszuschlag|abgeltungsteuer|quellensteuer)\b'
+    priority: 96
+  - category: Bankgebühren
+    pattern: '\b(sollzinssatz|habenzinssatz|strafzinsen?|kontoführungsgebühr|buchungsgebühr|serviceentgelt)\b'
+    priority: 94
+  - category: Kontoauszug
+    pattern: '\b(kontoabrechnung|abschlussposten|saldo der|entgeltabschluss|rechnungsabschluss)\b'
+    priority: 90
+  - category: Kontoauszug
+    pattern: '\bbis\b.+\bkontoinhaber\b'
+    priority: 82
+
   # Online & Entertainment
   - category: Online Shopping
     pattern: '\b(amazon|ebay)\b'

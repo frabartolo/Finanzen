@@ -58,3 +58,8 @@ categories:
     
     # Entertainment & Abos
     - "Entertainment"
+
+    # Bank & Steuern (Kapitalertrag, Kontoauszugszeilen)
+    - "Steuern"
+    - "Bankgebühren"
+    - "Kontoauszug"

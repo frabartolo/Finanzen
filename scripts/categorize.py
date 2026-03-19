@@ -7,6 +7,7 @@ Unterstützt regelbasierte und optionale ML-basierte Kategorisierung
 import sys
 import argparse
 import logging
+from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -93,6 +94,47 @@ class Categorizer:
         logger.debug("⚠ Keine Regel gefunden für: '%s'", description[:50])
         return None
 
+    def _diagnose_unassigned(self, rows: List[Tuple], sample: int = 300) -> None:
+        """Hilft bei 0 Treffern: fehlen Kategorien in der DB oder passen keine Regeln?"""
+        no_rule = 0
+        rule_but_missing_cat: Counter = Counter()
+        for trans_id, description, amount in rows[:sample]:
+            if not (description or "").strip():
+                continue
+            # Gleiche Logik wie categorize_transaction: Reihenfolge + „nächste Regel“
+            no_match = True
+            first_missing_name: Optional[str] = None
+            for rule in self.rules:
+                if not rule.matches(description):
+                    continue
+                no_match = False
+                if rule.category_name.lower() in self.category_cache:
+                    first_missing_name = None
+                    break
+                if first_missing_name is None:
+                    first_missing_name = rule.category_name
+            if no_match:
+                no_rule += 1
+            elif first_missing_name is not None:
+                rule_but_missing_cat[first_missing_name] += 1
+        logger.warning(
+            "Diagnose (Stichprobe bis %s Zeilen): keine Regel passte: %s | "
+            "Regel passte, Kategorie fehlt in DB (Name → Häufigkeit): %s",
+            min(sample, len(rows)),
+            no_rule,
+            dict(rule_but_missing_cat.most_common(15)),
+        )
+        if rule_but_missing_cat:
+            logger.warning(
+                "→ Neue Kategorien aus config/categories.yaml einspielen, z. B.: "
+                "docker compose exec app python3 scripts/setup_db.py --categories-only"
+            )
+        elif no_rule >= min(sample, len(rows)) * 0.9:
+            logger.warning(
+                "→ Fast alle Texte ohne Regeltreffer. Ergänze Muster in "
+                "config/categorization_rules.yaml oder nutze --verbose für Einzelfälle."
+            )
+
     def categorize_all(self, force_recategorize: bool = False) -> Tuple[int, int]:
         """
         Kategorisiert alle unkategorisierten Transaktionen
@@ -149,6 +191,8 @@ class Categorizer:
                     categorized_count,
                     total_count,
                 )
+                if categorized_count == 0 and total_count > 0:
+                    self._diagnose_unassigned(list(transactions))
                 return categorized_count, total_count
 
         except Exception as e:

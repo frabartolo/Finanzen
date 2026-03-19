@@ -50,6 +50,11 @@ def rules():
         ("Restaurant Italia", "Lebensmittel"),
         ("Shell Tankstelle", "Tanken"),
         ("Deutsche Bahn Ticket", "Öffentliche Verkehrsmittel"),
+        ("Kapitalertragsteuer", "Steuern"),
+        ("Solidaritätszuschlag 2. Kontoinhaber", "Steuern"),
+        ("Sollzinssatz laut Anlage", "Bankgebühren"),
+        ("Kontoabrechnung Saldo der Abschlussposten", "Kontoauszug"),
+        ("bis 30.06.2025 Kontoinhaber Stefan", "Kontoauszug"),
     ],
 )
 def test_rule_expected_category(description, expected, rules):
