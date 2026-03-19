@@ -189,6 +189,10 @@ docker compose exec app python3 scripts/propagate_categories.py
 docker compose exec app python3 scripts/propagate_categories.py --apply --collapse-dates
 docker compose exec app python3 scripts/propagate_categories.py --apply --collapse-dates --global-scope
 
+# Variante B: Regel-Vorschläge aus bereits gelabelten Buchungen (YAML auf stdout, manuell prüfen & in categorization_rules.yaml übernehmen)
+docker compose exec app python3 scripts/suggest_rules_from_labels.py
+docker compose exec app python3 scripts/suggest_rules_from_labels.py --collapse-dates --min-repeat 3 --limit 50
+
 # Credentials verwalten
 docker compose exec app python3 scripts/credential_manager.py list
 docker compose exec app python3 scripts/credential_manager.py store KEY VALUE
