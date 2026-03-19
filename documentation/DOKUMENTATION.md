@@ -193,6 +193,10 @@ docker compose exec app python3 scripts/propagate_categories.py --apply --collap
 docker compose exec app python3 scripts/suggest_rules_from_labels.py
 docker compose exec app python3 scripts/suggest_rules_from_labels.py --collapse-dates --min-repeat 3 --limit 50
 
+# Variante C: Ollama (Modell aus settings.ollama.model_categorization, z. B. deepseek-r1:8b) für Kategorie-Vorschläge
+docker compose exec app python3 scripts/categorize_with_ollama.py --limit 10
+docker compose exec app python3 scripts/categorize_with_ollama.py --apply --limit 20
+
 # Credentials verwalten
 docker compose exec app python3 scripts/credential_manager.py list
 docker compose exec app python3 scripts/credential_manager.py store KEY VALUE
