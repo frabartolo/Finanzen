@@ -219,7 +219,7 @@ Konfiguration in: `cron/crontab`
 
 Zugriff: http://localhost:3000
 
-- **Login:** admin / admin (beim ersten Login ändern!)
+- **Login:** Admin-Passwort aus `.env` (`GRAFANA_ADMIN_PASSWORD`)
 - **Dashboard:** "Finanzen Übersicht"
 
 Enthält:
@@ -227,8 +227,10 @@ Enthält:
 - Kontostand-Entwicklung
 - Einnahmen vs. Ausgaben
 - Kategorieverteilung (Pie Charts)
-- Letzte Transaktionen (Tabelle)
+- Letzte Umsätze (Tabelle)
 - Quartalsübersicht
+
+**Hinweis:** Zeilen mit der Kategorie **„Kontoauszug“** (Kontostand-/Abrechnungs-Hinweise, keine echten Umsätze) werden in allen Kennzahlen und in der Umsatz-Tabelle **ausgeblendet**. Sie bleiben in der Datenbank für Nachvollziehbarkeit; eigene SQL-Abfragen können sie weiter anzeigen.
 
 ---
 
