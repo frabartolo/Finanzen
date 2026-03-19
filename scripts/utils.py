@@ -6,8 +6,10 @@ Hilfsfunktionen für die Finanz-Scripts
 import yaml
 import os
 import re
+import time
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Iterator, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -94,6 +96,34 @@ def get_db_connection():
         raise ValueError(f"Nicht unterstützter Datenbanktyp: {db_type}")
 
 
+@contextmanager
+def db_connection(retries: int = 3, backoff_base: float = 0.5) -> Iterator[Any]:
+    """
+    Kontextmanager: Verbindung mit Retries beim Connect, sauberes close im finally.
+    Aufrufer führt commit/rollback selbst aus.
+    """
+    last_error: Optional[BaseException] = None
+    conn = None
+    for attempt in range(max(1, retries)):
+        try:
+            conn = get_db_connection()
+            break
+        except Exception as e:
+            last_error = e
+            if attempt < retries - 1:
+                time.sleep(backoff_base * (2**attempt))
+            else:
+                raise last_error from None
+    assert conn is not None
+    try:
+        yield conn
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            logger.debug("db_connection: Fehler beim Schließen der Verbindung", exc_info=True)
+
+
 def get_db_placeholder():
     """Datenbankspezifische Platzhalter für SQL-Queries"""
     return '%s'  # MySQL/MariaDB Platzhalter
@@ -101,13 +131,11 @@ def get_db_placeholder():
 
 def get_account_by_iban(iban: str):
     """Account-ID anhand der IBAN abrufen"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    ph = get_db_placeholder()
-    cursor.execute(f"SELECT id, name FROM accounts WHERE iban = {ph}", (iban,))
-    result = cursor.fetchone()
-    conn.close()
-    return result
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        ph = get_db_placeholder()
+        cursor.execute(f"SELECT id, name FROM accounts WHERE iban = {ph}", (iban,))
+        return cursor.fetchone()
 
 
 def format_amount(amount: float, currency: str = 'EUR') -> str:

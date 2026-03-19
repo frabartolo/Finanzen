@@ -30,24 +30,13 @@ settings:
     port: 3306
     name: "finanzen"
 
-# Kategorisierungsregeln (optional - wenn auskommentiert, werden Standard-Regeln verwendet)
-# Format: Kategorie-Name: Liste von Regex-Patterns oder Pattern-Objekten mit Priorität
-# 
-# HINWEIS: Auskommentiert, damit die umfangreichen Standard-Regeln im Code verwendet werden.
-# Diese umfassen ~50 Regeln für alle gängigen Kategorien.
-# 
-# Eigene Custom-Regeln können hier hinzugefügt werden - dann werden sie MIT den Standard-Regeln kombiniert:
-# 
+# Zusätzliche Kategorisierungsregeln (optional).
+# Standardregeln liegen in config/categorization_rules.yaml (YAML-Liste: category, pattern, priority).
+# Hier können eigene Regeln ergänzt werden – sie werden MIT den YAML-Standardregeln kombiniert
+# (gleiches Dict-Format wie bisher: Kategoriename → Liste von Pattern-Strings oder {pattern, priority}).
+#
 # categorization_rules:
-#   "Gehalt":
-#     - pattern: '\b(gehalt|lohn|salary)\b'
+#   "Meine Kategorie":
+#     - pattern: '\b(beispiel)\b'
 #       priority: 100
-#   
-#   "Miete Sonnenberg":
-#     - pattern: '\b(miete.*von.*sonnenberg)\b'
-#       priority: 95
-#   
-#   "Internet":
-#     - pattern: '\b(telekom|vodafone|1&1)\b'
-#       priority: 85
 

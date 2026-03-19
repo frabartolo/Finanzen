@@ -12,7 +12,7 @@ import logging
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection, compute_transaction_hash
+from scripts.utils import load_config, db_connection, compute_transaction_hash
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -117,56 +117,55 @@ def save_transactions(transactions: List[Dict], account_id: int) -> None:
     if not transactions:
         return
     
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    inserted = 0
-    for trans in transactions:
-        try:
-            desc = trans["purpose"] or ""
-            tx_hash = compute_transaction_hash(
-                account_id, trans["date"], trans["amount"], desc, "fints"
-            )
-            cursor.execute(
-                """
-                INSERT IGNORE INTO transactions
-                (account_id, date, amount, description, source, transaction_hash)
-                VALUES (%s, %s, %s, %s, 'fints', %s)
-                """,
-                (account_id, trans["date"], trans["amount"], desc, tx_hash),
-            )
-            if cursor.rowcount > 0:
-                inserted += 1
-        except Exception as e:
-            logger.error(f"❌ Fehler beim Speichern der Transaktion: {e}")
-    
-    conn.commit()
-    conn.close()
-    
-    logger.info(f"💾 {inserted} neue Transaktionen gespeichert")
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        inserted = 0
+        for trans in transactions:
+            try:
+                desc = trans["purpose"] or ""
+                tx_hash = compute_transaction_hash(
+                    account_id, trans["date"], trans["amount"], desc, "fints"
+                )
+                cursor.execute(
+                    """
+                    INSERT IGNORE INTO transactions
+                    (account_id, date, amount, description, source, transaction_hash)
+                    VALUES (%s, %s, %s, %s, 'fints', %s)
+                    """,
+                    (account_id, trans["date"], trans["amount"], desc, tx_hash),
+                )
+                if cursor.rowcount > 0:
+                    inserted += 1
+            except Exception as e:
+                logger.error("❌ Fehler beim Speichern der Transaktion: %s", e)
+
+        conn.commit()
+
+    logger.info("💾 %s neue Transaktionen gespeichert", inserted)
 
 
 def fetch_all_accounts() -> None:
     """Alle konfigurierten Konten verarbeiten"""
     logger.info("🚀 Starte FinTS-Abruf...")
     
-    accounts_config = load_config('accounts')
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    for account in accounts_config.get('accounts', []):
-        # Account-ID aus Datenbank holen
-        cursor.execute("SELECT id FROM accounts WHERE iban = %s", (account.get('iban'),))
-        result = cursor.fetchone()
-        
-        if result:
-            account_id = result[0]
-            transactions = fetch_transactions_for_account(account)
-            save_transactions(transactions, account_id)
-        else:
-            logger.warning(f"⚠️ Konto nicht in Datenbank gefunden: {account['name']}")
-    
-    conn.close()
+    accounts_config = load_config("accounts")
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        for account in accounts_config.get("accounts", []):
+            cursor.execute(
+                "SELECT id FROM accounts WHERE iban = %s", (account.get("iban"),)
+            )
+            result = cursor.fetchone()
+
+            if result:
+                account_id = result[0]
+                transactions = fetch_transactions_for_account(account)
+                save_transactions(transactions, account_id)
+            else:
+                logger.warning(
+                    "⚠️ Konto nicht in Datenbank gefunden: %s", account["name"]
+                )
+
     logger.info("✅ FinTS-Abruf abgeschlossen")
 
 

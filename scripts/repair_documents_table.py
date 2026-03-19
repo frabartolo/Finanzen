@@ -8,32 +8,29 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import get_db_connection
+from scripts.utils import db_connection
 
 
 def repair():
-    conn = get_db_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute("DROP TABLE IF EXISTS documents")
-        cursor.execute("""
-            CREATE TABLE documents (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                raw_text TEXT,
-                amount DECIMAL(15,2),
-                category VARCHAR(255),
-                INDEX idx_documents_category (category)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        conn.commit()
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS documents")
+            cursor.execute("""
+                CREATE TABLE documents (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    raw_text TEXT,
+                    amount DECIMAL(15,2),
+                    category VARCHAR(255),
+                    INDEX idx_documents_category (category)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """)
+            conn.commit()
         print("✅ Tabelle documents repariert (neu erstellt)")
         return True
     except Exception as e:
-        conn.rollback()
         print(f"❌ Fehler: {e}")
         return False
-    finally:
-        conn.close()
 
 
 def main():

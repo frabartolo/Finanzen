@@ -29,7 +29,7 @@ except ImportError:
     OCR_AVAILABLE = False
 
 from scripts.utils import (
-    get_db_connection,
+    db_connection,
     get_db_placeholder,
     ensure_dir,
     load_config,
@@ -514,23 +514,25 @@ def parse_pdf(path, metadata=None):
 def get_account_id_by_bank(bank_name):
     """Ermittelt die account_id basierend auf dem Banknamen"""
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        ph = get_db_placeholder()
-        
-        # Suche Account anhand des Banknamens
-        cursor.execute(f"SELECT id FROM accounts WHERE bank LIKE {ph} LIMIT 1", (f"%{bank_name}%",))
-        result = cursor.fetchone()
-        conn.close()
-        
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            ph = get_db_placeholder()
+            cursor.execute(
+                f"SELECT id FROM accounts WHERE bank LIKE {ph} LIMIT 1",
+                (f"%{bank_name}%",),
+            )
+            result = cursor.fetchone()
+
         if result:
             return result[0]
-        else:
-            logger.warning(f"⚠️ Kein Account für Bank '{bank_name}' gefunden, verwende Standard-Account")
-            return 1
-            
+        logger.warning(
+            "⚠️ Kein Account für Bank '%s' gefunden, verwende Standard-Account",
+            bank_name,
+        )
+        return 1
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Abrufen der Account-ID: {e}")
+        logger.error("❌ Fehler beim Abrufen der Account-ID: %s", e)
         return 1
 
 
@@ -538,60 +540,54 @@ def store(data, account_id=None):
     """Geparste Daten in Datenbank speichern"""
     if not data:
         return False
-    
+
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        ph = get_db_placeholder()
-        
-        # Account-ID bestimmen
-        if account_id is None:
-            # Versuche aus erkannter Bank zu ermitteln
-            if data.get('bank'):
-                account_id = get_account_id_by_bank(data['bank'])
-            else:
-                account_id = 1  # Fallback
-        
-        stored_count = 0
-        
-        # Transaktionen speichern
-        if data.get('transactions'):
-            for trans in data['transactions']:
-                desc = (trans['description'] or '')[:MAX_DESCRIPTION_LENGTH]
-                tx_hash = compute_transaction_hash(
-                    account_id, trans["date"], trans["amount"], desc, "pdf"
-                )
-                cursor.execute(
-                    f"""INSERT IGNORE INTO transactions 
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            ph = get_db_placeholder()
+
+            if account_id is None:
+                if data.get("bank"):
+                    account_id = get_account_id_by_bank(data["bank"])
+                else:
+                    account_id = 1
+
+            stored_count = 0
+
+            if data.get("transactions"):
+                for trans in data["transactions"]:
+                    desc = (trans["description"] or "")[:MAX_DESCRIPTION_LENGTH]
+                    tx_hash = compute_transaction_hash(
+                        account_id, trans["date"], trans["amount"], desc, "pdf"
+                    )
+                    cursor.execute(
+                        f"""INSERT IGNORE INTO transactions 
                         (account_id, date, amount, description, source, transaction_hash) 
                         VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})""",
-                    (account_id, trans["date"], trans["amount"], desc, "pdf", tx_hash),
-                )
-                if cursor.rowcount > 0:
-                    stored_count += 1
-                else:
-                    logger.debug(
-                        f"   ⏭️ Duplikat übersprungen (hash): {desc[:30]}..."
+                        (account_id, trans["date"], trans["amount"], desc, "pdf", tx_hash),
                     )
-        else:
-            # Fallback: Als Dokument speichern
-            cursor.execute(
-                f"INSERT INTO documents (raw_text, amount) VALUES ({ph}, {ph})",
-                (data["raw_text"], data.get("amount"))
-            )
-            stored_count += 1
-        
-        conn.commit()
-        conn.close()
-        
+                    if cursor.rowcount > 0:
+                        stored_count += 1
+                    else:
+                        logger.debug(
+                            "   ⏭️ Duplikat übersprungen (hash): %s...",
+                            desc[:30],
+                        )
+            else:
+                cursor.execute(
+                    f"INSERT INTO documents (raw_text, amount) VALUES ({ph}, {ph})",
+                    (data["raw_text"], data.get("amount")),
+                )
+                stored_count += 1
+
+            conn.commit()
+
         if stored_count > 0:
-            logger.info(f"💾 {stored_count} Datensatz/Datensätze gespeichert")
+            logger.info("💾 %s Datensatz/Datensätze gespeichert", stored_count)
         return True
-        
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Speichern: {e}")
-        if conn:
-            conn.rollback()
+        logger.error("❌ Fehler beim Speichern: %s", e)
         return False
 
 

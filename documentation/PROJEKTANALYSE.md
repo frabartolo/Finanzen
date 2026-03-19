@@ -1,6 +1,6 @@
 # Projektanalyse: Finanzen
 
-Stand Analyse: 2026-03-19 · **Umsetzungsstand: 2026-03-12**
+Stand Analyse: 2026-03-19 · **Umsetzungsstand: 2026-03-19**
 
 ## Umsetzungsstand (erledigt)
 
@@ -10,7 +10,9 @@ Stand Analyse: 2026-03-19 · **Umsetzungsstand: 2026-03-12**
 | **2** Grafana-Image pinnen | ✅ | `grafana/grafana:11.4.3` in `docker-compose.yml` |
 | **3** DB-Port nicht öffentlich | ✅ | Kein `3306:3306` im Standard-Compose; optional `docker-compose.debug-db.yml` (127.0.0.1) |
 | **4** Transaktions-Duplikate | ✅ | `transaction_hash` + Unique-Index; `INSERT IGNORE`; `backfill_transaction_hash.py`; siehe `DEPLOYMENT.md` |
-| **7** pytest (Teil) | 🔶 | `tests/test_transaction_hash.py`; vollständige Migration der `scripts/test_*.py` → `tests/` offen |
+| **5** Regeln in Konfiguration | ✅ | `config/categorization_rules.yaml` + `scripts/categorization_rules.py` (Validierung); Zusatz in `settings.yaml` möglich |
+| **6** DB-Zugriff | ✅ | `db_connection()` in `utils.py` (Contextmanager, Retries/Backoff); genutzt in categorize, parse_pdfs, fetch_*, backfill, manage_accounts, reset_db, repair_documents, categorize_vermietung; `setup_db.py` noch direkt `get_db_connection` |
+| **7** pytest-Suite | ✅ | `tests/test_categorization.py`, `test_categorization_rules.py`, `test_parse_pdfs.py`, `test_transaction_hash.py`; `scripts/test_*.py` rufen pytest auf |
 
 ---
 
@@ -51,24 +53,24 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 ### 4) Eindeutigkeit von Transaktionen sicherstellen — ✅ umgesetzt
 - ~~Im Schema fehlt eine technische Duplikat-Schranke~~ → Spalte **`transaction_hash`**, Unique **`(account_id, transaction_hash)`**, `compute_transaction_hash()` in `scripts/utils.py`, **`INSERT IGNORE`** in PDF/FinTS-Imports, **`scripts/backfill_transaction_hash.py`**, Migration in `setup_db.py` / `deploy.sh`.
 
-### 5) Kategorisierungsregeln stärker aus Code in Konfiguration verschieben
-- Große Regelblöcke sind direkt im Code eingebettet. Das erschwert Pflege, Reviews und domänenspezifische Anpassungen.
-- Empfehlung:
-  - Regelbasis in `config/settings.yaml`/separate `rules.yaml` auslagern.
-  - Loader mit Schema-Validierung ergänzen (z. B. Pflichtfelder `pattern`, `category`, `priority`).
+### 5) Kategorisierungsregeln stärker aus Code in Konfiguration verschieben — ✅ umgesetzt
+- ~~Regelblöcke im Code~~ → **`config/categorization_rules.yaml`** (`rules:` mit `category`, `pattern`, `priority`).
+- **`scripts/categorization_rules.py`**: Laden, Regex-Validierung, optionales Merge mit `settings.yaml` → `categorization_rules` (Dict-Format wie bisher).
+- **`scripts/categorize.py`** nutzt nur noch den Loader.
 
-### 6) Robustere Fehlerbehandlung bei DB-Zugriff
-- Mehrere Stellen öffnen Verbindungen/Kursoren ohne konsequenten `finally`/Context-Manager-Pfad.
-- Empfehlung:
-  - Einheitliche DB-Helfer (`with_connection()`), inklusive Retry/Backoff und sauberem Close.
+### 6) Robustere Fehlerbehandlung bei DB-Zugriff — ✅ umgesetzt (Kernpfade)
+- **`scripts.utils.db_connection`**: Contextmanager, Connect-Retries mit exponentiellem Backoff, sauberes `close`.
+- Eingesetzt u. a. in `categorize`, `parse_pdfs`, `fetch_fints`, `fetch_postbank`, `backfill_transaction_hash`, `categorize_vermietung`, `manage_accounts`, `reset_db`, `repair_documents_table`, `get_account_by_iban`.
+- **`setup_db.py`**: weiterhin direktes `get_db_connection` (Migration/Setup; bei Bedarf später vereinheitlichen).
 
 ---
 
 ## P2 — Teststrategie & Wartbarkeit
 
-### 7) Von Script-basierten Tests zu pytest-Suite — 🔶 teilweise
-- **`tests/test_transaction_hash.py`** ergänzt (CI führt `pytest tests/` aus, falls vorhanden).
-- Offen: `scripts/test_parse_pdfs.py` / `test_categorization.py` vollständig nach `tests/` migrieren, Fixtures, Integrationstests gegen Test-DB.
+### 7) Von Script-basierten Tests zu pytest-Suite — ✅ umgesetzt (ohne Test-DB)
+- **`tests/`:** `test_transaction_hash`, `test_categorization`, `test_categorization_rules`, `test_parse_pdfs`.
+- **`scripts/test_categorization.py`** / **`test_parse_pdfs.py`:** rufen `pytest` auf (Kompatibilität).
+- Offen (optional): Integrations-Tests gegen Test-DB, gemeinsame Fixtures.
 
 ### 8) Typisierung und statische Qualität erhöhen
 - Bereits vorhandene Type Hints sind ein guter Anfang.
@@ -104,13 +106,13 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 ### 0-30 Tage (Quick Wins)
 - ~~Grafana-Passwort/Version härten~~ ✅
 - ~~DB-Port nur optional freigeben~~ ✅
-- `pytest`-Grundgerüst + erste CI-Pipeline → 🔶 (erste Tests + CI vorhanden; Ausbau offen)
-- zentraler DB-Context-Manager → offen
+- ~~`pytest`-Grundgerüst + CI~~ ✅
+- ~~zentraler DB-Context-Manager~~ ✅ (`db_connection`)
 
 ### 31-60 Tage
 - ~~Idempotenz-Konzept für Ingestion (Hash + Unique-Index)~~ ✅
-- Kategorisierungsregeln aus Code in YAML überführen
-- Schema-Validierung für Konfiguration
+- ~~Kategorisierungsregeln aus Code in YAML überführen~~ ✅
+- Schema-Validierung für Konfiguration → 🔶 (Regeln validiert; restliche `settings.yaml` optional)
 
 ### 61-90 Tage
 - Strukturierte Logs + Metriken
@@ -124,6 +126,6 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 1. ~~**SEC-01:** Entferne `grafana:latest`, pinne Version, Passwort via Env-Variable erzwingen.~~ ✅  
 2. ~~**OPS-02:** Mache DB-Port-Mapping optional (Debug-Profil).~~ ✅ (`docker-compose.debug-db.yml`)  
 3. ~~**DATA-03:** Führe `transaction_hash` ein + Unique-Index + Backfill-Skript.~~ ✅  
-4. **QA-04:** Migriere `scripts/test_*.py` in `tests/` mit `pytest`. → 🔶 (nur `test_transaction_hash` in `tests/`)  
-5. **ARCH-05:** Regelengine entkoppeln (YAML-first + Validierung).
+4. ~~**QA-04:** Migriere `scripts/test_*.py` in `tests/` mit `pytest`.~~ ✅  
+5. ~~**ARCH-05:** Regelengine entkoppeln (YAML-first + Validierung).~~ ✅ (`categorization_rules.yaml` + Loader)
 

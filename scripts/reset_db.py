@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import get_db_connection
+from scripts.utils import db_connection
 
 
 def reset_transaction_data(confirm: bool = False):
@@ -18,24 +18,21 @@ def reset_transaction_data(confirm: bool = False):
         print("   Beispiel: python scripts/reset_db.py --confirm")
         return False
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM transactions")
-        tx_count = cursor.rowcount
-        cursor.execute("DELETE FROM documents")
-        doc_count = cursor.rowcount
-        conn.commit()
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM transactions")
+            tx_count = cursor.rowcount
+            cursor.execute("DELETE FROM documents")
+            doc_count = cursor.rowcount
+            conn.commit()
         print(f"✅ {tx_count} Transaktion(en) gelöscht")
         print(f"✅ {doc_count} Dokument(e) gelöscht")
         print("   Konten und Kategorien bleiben unverändert.")
         return True
     except Exception as e:
-        conn.rollback()
         print(f"❌ Fehler: {e}")
         return False
-    finally:
-        conn.close()
 
 
 def main():

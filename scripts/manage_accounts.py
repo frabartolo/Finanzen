@@ -11,7 +11,7 @@ import logging
 # Pfad zum Projekt-Root hinzufügen
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import load_config, get_db_connection, get_db_placeholder
+from scripts.utils import load_config, db_connection
 from scripts.fetch_postbank import PostbankFinTSClient, setup_account_in_db
 
 # Logging konfigurieren
@@ -50,25 +50,23 @@ def list_database_accounts():
     print("="*60)
     
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT a.id, a.name, a.type, a.bank, a.iban, 
-                   COUNT(t.id) as transaction_count,
-                   MAX(t.date) as last_transaction
-            FROM accounts a
-            LEFT JOIN transactions t ON a.id = t.account_id
-            GROUP BY a.id
-            ORDER BY a.name
-        """)
-        
-        accounts = cursor.fetchall()
-        
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT a.id, a.name, a.type, a.bank, a.iban, 
+                       COUNT(t.id) as transaction_count,
+                       MAX(t.date) as last_transaction
+                FROM accounts a
+                LEFT JOIN transactions t ON a.id = t.account_id
+                GROUP BY a.id
+                ORDER BY a.name
+            """)
+            accounts = cursor.fetchall()
+
         if not accounts:
             print("❌ Keine Konten in der Datenbank gefunden")
             return
-        
+
         for account in accounts:
             acc_id, name, acc_type, bank, iban, trans_count, last_trans = account
             print(f"\nID {acc_id}: {name}")
@@ -80,11 +78,9 @@ def list_database_accounts():
                 print(f"   Letzte Transaktion: {last_trans}")
             else:
                 print(f"   Letzte Transaktion: Keine vorhanden")
-        
-        conn.close()
-        
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Lesen der Datenbank: {e}")
+        logger.error("❌ Fehler beim Lesen der Datenbank: %s", e)
 
 
 def test_fints_connection(account_name: str = None):
@@ -131,20 +127,15 @@ def sync_accounts_to_db():
     
     # Prüfen ob MariaDB verfügbar ist
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Prüfen ob accounts Tabelle existiert
-        cursor.execute("SHOW TABLES LIKE 'accounts'")
-        if not cursor.fetchone():
-            print("❌ Datenbank-Tabellen existieren noch nicht!")
-            print("   Lösung: ./deploy.sh production ausführen")
-            conn.close()
-            return
-        
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SHOW TABLES LIKE 'accounts'")
+            if not cursor.fetchone():
+                print("❌ Datenbank-Tabellen existieren noch nicht!")
+                print("   Lösung: ./deploy.sh production ausführen")
+                return
         print("✅ MariaDB-Verbindung erfolgreich")
-        conn.close()
-        
+
     except Exception as e:
         print(f"❌ MariaDB nicht verfügbar: {e}")
         print("   Lösung: ./deploy.sh production ausführen")
@@ -166,32 +157,28 @@ def show_recent_transactions(limit: int = 10):
     print("="*60)
     
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT t.date, a.name, t.amount, t.description, t.source
-            FROM transactions t
-            JOIN accounts a ON t.account_id = a.id
-            ORDER BY t.date DESC, t.created_at DESC
-            LIMIT %s
-        """, (limit,))
-        
-        transactions = cursor.fetchall()
-        
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT t.date, a.name, t.amount, t.description, t.source
+                FROM transactions t
+                JOIN accounts a ON t.account_id = a.id
+                ORDER BY t.date DESC, t.created_at DESC
+                LIMIT %s
+            """, (limit,))
+            transactions = cursor.fetchall()
+
         if not transactions:
             print("❌ Keine Transaktionen gefunden")
             return
-        
+
         for trans in transactions:
             date, account, amount, desc, source = trans
             amount_str = f"{amount:+.2f} EUR"
             print(f"{date} | {account:20s} | {amount_str:>12s} | {desc[:50]}")
-        
-        conn.close()
-        
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Lesen der Transaktionen: {e}")
+        logger.error("❌ Fehler beim Lesen der Transaktionen: %s", e)
 
 
 def main():

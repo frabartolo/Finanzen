@@ -132,17 +132,26 @@ categories:
     - "Lebensmittel"
 ```
 
-### 4. Kategorisierungsregeln (config/settings.yaml)
+### 4. Kategorisierungsregeln
+
+**Standard:** `config/categorization_rules.yaml` – Liste `rules:` mit Einträgen `category`, `pattern`, optional `priority` (Default 10). Regex sind case-insensitive.
+
+**Zusätzlich (optional):** In `config/settings.yaml` unter `categorization_rules` eigene Regeln im Dict-Format – werden mit den YAML-Standardregeln **zusammengeführt** und nach Priorität sortiert.
 
 ```yaml
+# config/categorization_rules.yaml (Auszug)
+rules:
+  - category: Gehalt
+    pattern: '\b(gehalt|lohn|salary)\b'
+    priority: 100
+```
+
+```yaml
+# settings.yaml – nur für Ergänzungen
 categorization_rules:
-  "Gehalt":
-    - pattern: '\b(gehalt|lohn|salary)\b'
+  "Meine Kategorie":
+    - pattern: '\b(beispiel)\b'
       priority: 100
-  
-  "Internet":
-    - pattern: '\b(telekom|vodafone|1&1)\b'
-      priority: 85
 ```
 
 ---
@@ -404,7 +413,8 @@ rm -rf data/db/*
 ```python
 from scripts.utils import (
     load_config,           # YAML-Config laden
-    get_db_connection,     # DB-Verbindung
+    get_db_connection,     # DB-Verbindung (roh)
+    db_connection,         # Contextmanager: with db_connection() as conn (Retries + close)
     get_db_placeholder,    # SQL-Platzhalter
     get_secure_credential, # Credential aus Store
     format_amount,         # Betrag formatieren

@@ -77,16 +77,11 @@ expenses:
 
 ## Verifikation
 
-**Test-Script:** `scripts/test_categorization.py`
+**Tests:** `pytest tests/test_categorization.py` oder Kompatibilität `python3 scripts/test_categorization.py` (ruft pytest auf).
 
 ```bash
 cd /home/stefan/Workspace/Finanzen
-python3 scripts/test_categorization.py
-```
-
-**Ergebnis:**
-```
-✅ Keine kritischen Fehler (falsche Lebensmittel-Kategorisierung)
+pytest tests/test_categorization.py -v
 ```
 
 ### Beispiel-Matches (korrekt):
@@ -121,9 +116,10 @@ Alle neuen Transaktionen werden automatisch korrekt kategorisiert.
 
 ## Betroffene Dateien
 
-- ✅ `scripts/categorize.py` - Regeln korrigiert (Zeilen 134-152)
+- ✅ `scripts/categorize.py` – nutzt Regeln aus YAML
+- ✅ `config/categorization_rules.yaml` – Standard-Regeln
 - ✅ `config/categories.yaml` - Struktur verbessert
-- ✅ `scripts/test_categorization.py` - Test-Script erstellt
+- ✅ `tests/test_categorization.py` – pytest
 
 ## Status
 

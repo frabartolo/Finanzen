@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from scripts.utils import get_db_connection, get_db_placeholder
+from scripts.utils import db_connection, get_db_placeholder
 
 
 def load_vermietung_rules():
@@ -44,70 +44,82 @@ def run(dry_run=False, force=False, verbose=False):
         return 0, 0
 
     try:
-        conn = get_db_connection()
+        with db_connection() as conn:
+            ph = get_db_placeholder()
+            cat_ids = get_category_ids(conn)
+
+            rule_cats = {r.get("category") for r in rules if r.get("category")}
+            missing = rule_cats - set(cat_ids.keys())
+            if missing:
+                print(
+                    "Hinweis: Diese Kategorien aus den Regeln fehlen in der DB "
+                    "(evtl. setup_db.py ausführen):"
+                )
+                for c in sorted(missing):
+                    print(f"  - {c}")
+            if verbose:
+                print(
+                    "In DB vorhandene Vermietungs-Kategorien:",
+                    [
+                        c
+                        for c in sorted(cat_ids.keys())
+                        if "miete" in c.lower()
+                        or "vermietung" in c.lower()
+                        or "pacht" in c.lower()
+                    ],
+                )
+
+            cursor = conn.cursor()
+            if force:
+                cursor.execute("SELECT id, description, amount FROM transactions")
+            else:
+                cursor.execute(
+                    "SELECT id, description, amount FROM transactions WHERE category_id IS NULL"
+                )
+            rows = cursor.fetchall()
+            updated = 0
+
+            if verbose and rows:
+                print("Beispiel-Buchungstexte (erste 5):")
+                for tid, description, amount in rows[:5]:
+                    desc = (description or "").strip()[:60]
+                    print(f"  id={tid} amount={amount} | {desc!r}")
+
+            for tid, description, amount in rows:
+                description = (description or "").strip()
+                amount = float(amount or 0)
+                for rule in rules:
+                    pattern = rule.get("description_pattern")
+                    cat_name = rule.get("category")
+                    if not pattern or not cat_name or cat_name not in cat_ids:
+                        continue
+                    amount_min = rule.get("amount_min")
+                    amount_max = rule.get("amount_max")
+                    if amount_min is not None and amount < amount_min:
+                        continue
+                    if amount_max is not None and amount > amount_max:
+                        continue
+                    if re.search(pattern, description):
+                        if not dry_run:
+                            cursor.execute(
+                                f"UPDATE transactions SET category_id = {ph} WHERE id = {ph}",
+                                (cat_ids[cat_name], tid),
+                            )
+                        updated += 1
+                        print(f"  [{tid}] {description[:50]}... → {cat_name}")
+                        break
+
+            if not dry_run and updated:
+                conn.commit()
+            return updated, len(rows)
     except ModuleNotFoundError as e:
         if "mysql" in str(e).lower():
             print("Hinweis: mysql.connector fehlt. Skript im App-Container ausführen:")
-            print("  docker compose exec app python3 scripts/categorize_vermietung.py [--dry-run] [--force]")
+            print(
+                "  docker compose exec app python3 scripts/categorize_vermietung.py [--dry-run] [--force]"
+            )
             sys.exit(1)
         raise
-    ph = get_db_placeholder()
-    cat_ids = get_category_ids(conn)
-
-    # Prüfen: Welche Regel-Kategorien fehlen in der DB?
-    rule_cats = {r.get("category") for r in rules if r.get("category")}
-    missing = rule_cats - set(cat_ids.keys())
-    if missing:
-        print("Hinweis: Diese Kategorien aus den Regeln fehlen in der DB (evtl. setup_db.py ausführen):")
-        for c in sorted(missing):
-            print(f"  - {c}")
-    if verbose:
-        print("In DB vorhandene Vermietungs-Kategorien:", [c for c in sorted(cat_ids.keys()) if "miete" in c.lower() or "vermietung" in c.lower() or "pacht" in c.lower()])
-
-    cursor = conn.cursor()
-    if force:
-        cursor.execute("SELECT id, description, amount FROM transactions")
-    else:
-        cursor.execute(
-            "SELECT id, description, amount FROM transactions WHERE category_id IS NULL"
-        )
-    rows = cursor.fetchall()
-    updated = 0
-
-    if verbose and rows:
-        print("Beispiel-Buchungstexte (erste 5):")
-        for tid, description, amount in rows[:5]:
-            desc = (description or "").strip()[:60]
-            print(f"  id={tid} amount={amount} | {desc!r}")
-
-    for tid, description, amount in rows:
-        description = (description or "").strip()
-        amount = float(amount or 0)
-        for rule in rules:
-            pattern = rule.get("description_pattern")
-            cat_name = rule.get("category")
-            if not pattern or not cat_name or cat_name not in cat_ids:
-                continue
-            amount_min = rule.get("amount_min")
-            amount_max = rule.get("amount_max")
-            if amount_min is not None and amount < amount_min:
-                continue
-            if amount_max is not None and amount > amount_max:
-                continue
-            if re.search(pattern, description):
-                if not dry_run:
-                    cursor.execute(
-                        f"UPDATE transactions SET category_id = {ph} WHERE id = {ph}",
-                        (cat_ids[cat_name], tid),
-                    )
-                updated += 1
-                print(f"  [{tid}] {description[:50]}... → {cat_name}")
-                break
-
-    if not dry_run and updated:
-        conn.commit()
-    conn.close()
-    return updated, len(rows)
 
 
 def main():

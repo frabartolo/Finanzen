@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from scripts.utils import (
     load_config,
-    get_db_connection,
+    db_connection,
     get_db_placeholder,
     compute_transaction_hash,
 )
@@ -140,71 +140,80 @@ class PostbankFinTSClient:
 
 def setup_account_in_db(account_config: Dict) -> Optional[int]:
     """Konto in Datenbank einrichten, falls nicht vorhanden"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
     placeholder = get_db_placeholder()
-    
     try:
-        # Prüfen ob Konto bereits existiert
-        cursor.execute(f"SELECT id FROM accounts WHERE iban = {placeholder}", (account_config['iban'],))
-        result = cursor.fetchone()
-        
-        if result:
-            account_id = result[0]
-            logger.info(f"📋 Konto bereits in DB: {account_config['name']} (ID: {account_id})")
-        else:
-            # Konto anlegen
+        with db_connection() as conn:
+            cursor = conn.cursor()
             cursor.execute(
-                f"INSERT INTO accounts (name, type, bank, iban) VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})",
-                (account_config['name'], account_config['type'], account_config['bank'], account_config['iban'])
+                f"SELECT id FROM accounts WHERE iban = {placeholder}",
+                (account_config["iban"],),
             )
-            account_id = cursor.lastrowid
-            conn.commit()
-            logger.info(f"✅ Konto in DB angelegt: {account_config['name']} (ID: {account_id})")
-        
-        return account_id
-        
+            result = cursor.fetchone()
+
+            if result:
+                account_id = result[0]
+                logger.info(
+                    "📋 Konto bereits in DB: %s (ID: %s)",
+                    account_config["name"],
+                    account_id,
+                )
+            else:
+                cursor.execute(
+                    f"INSERT INTO accounts (name, type, bank, iban) VALUES "
+                    f"({placeholder}, {placeholder}, {placeholder}, {placeholder})",
+                    (
+                        account_config["name"],
+                        account_config["type"],
+                        account_config["bank"],
+                        account_config["iban"],
+                    ),
+                )
+                account_id = cursor.lastrowid
+                conn.commit()
+                logger.info(
+                    "✅ Konto in DB angelegt: %s (ID: %s)",
+                    account_config["name"],
+                    account_id,
+                )
+
+            return account_id
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Einrichten des Kontos: {e}")
+        logger.error("❌ Fehler beim Einrichten des Kontos: %s", e)
         return None
-    finally:
-        conn.close()
 
 
 def save_transactions_to_db(transactions: List[Dict], account_id: int) -> int:
     """Transaktionen in Datenbank speichern"""
     if not transactions:
         return 0
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
+
     inserted = 0
-    
     try:
-        for trans in transactions:
-            desc = (
-                f"{trans.get('purpose', '')} | {trans.get('applicant_name', '')}"
-            ).strip(" |")
-            tx_hash = compute_transaction_hash(
-                account_id, trans["date"], trans["amount"], desc, "fints"
-            )
-            cursor.execute(
-                """INSERT IGNORE INTO transactions
+        with db_connection() as conn:
+            cursor = conn.cursor()
+            for trans in transactions:
+                desc = (
+                    f"{trans.get('purpose', '')} | {trans.get('applicant_name', '')}"
+                ).strip(" |")
+                tx_hash = compute_transaction_hash(
+                    account_id, trans["date"], trans["amount"], desc, "fints"
+                )
+                cursor.execute(
+                    """INSERT IGNORE INTO transactions
                    (account_id, date, amount, description, source, transaction_hash)
                    VALUES (%s, %s, %s, %s, 'fints', %s)""",
-                (account_id, trans["date"], trans["amount"], desc, tx_hash),
-            )
-            if cursor.rowcount > 0:
-                inserted += 1
-        
-        conn.commit()
-        logger.info(f"💾 {inserted} neue Transaktionen in DB gespeichert")
-        
+                    (account_id, trans["date"], trans["amount"], desc, tx_hash),
+                )
+                if cursor.rowcount > 0:
+                    inserted += 1
+
+            conn.commit()
+            logger.info("💾 %s neue Transaktionen in DB gespeichert", inserted)
+
     except Exception as e:
-        logger.error(f"❌ Fehler beim Speichern: {e}")
-    finally:
-        conn.close()
-    
+        logger.error("❌ Fehler beim Speichern: %s", e)
+
     return inserted
 
 

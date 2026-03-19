@@ -1,0 +1,149 @@
+# Standard-Kategorisierungsregeln (regex, case-insensitive).
+# Schema: rules[] mit category, pattern, priority (optional, Default 10).
+# Höhere priority wird zuerst geprüft. Zusätzliche Regeln in settings.yaml → categorization_rules (Dict-Format).
+
+rules:
+  # Einnahmen
+  - category: Gehalt
+    pattern: '\b(gehalt|lohn|salary)\b'
+    priority: 100
+  - category: Bonus
+    pattern: '\b(bonus|prämie|sonderzahlung)\b'
+    priority: 100
+  - category: Miete Neuhof
+    pattern: '\b(monica\s*jung|sebastian\s*juros|miete\s*und\s*nebenkosten|miete\s*wohnung)\b'
+    priority: 95
+  - category: Miete Neuhof
+    pattern: '\b(neuhof|zum neuhof)\b'
+    priority: 92
+  - category: Miete Sonnenberg
+    pattern: '\b(mietameixa|sonnenberg|ameixa)\b'
+    priority: 92
+  - category: Miete Weinbergsgelände
+    pattern: '\b(weinberg|pacht.*einnahme|verpachtung)\b'
+    priority: 92
+  - category: Miete Sonnenberg
+    pattern: '\b(miete.*eingang|mietzahlung.*von)\b'
+    priority: 90
+  - category: Miete Neuhof
+    pattern: '\b(überweisung.*miete)\b'
+    priority: 90
+
+  # Wohnen
+  - category: Miete
+    pattern: '\b(miete|kaltmiete|warmmiete)\b'
+    priority: 80
+  - category: Strom
+    pattern: '\b(strom|stadtwerke|energie|e\.on|vattenfall)\b'
+    priority: 80
+  - category: Internet
+    pattern: '\b(internet|telekom|vodafone|1&1|o2)\b'
+    priority: 80
+  - category: Wohnen
+    pattern: '\b(wasser|abwasser)\b'
+    priority: 70
+  - category: Wohnen
+    pattern: '\b(müll|müllgebühr|entsorgung)\b'
+    priority: 70
+  - category: Wohnen
+    pattern: '\b(versicherung.*wohnung)\b'
+    priority: 70
+
+  # Mobilität
+  - category: Tanken
+    pattern: '\b(tankstelle|tanken|shell|aral|esso|jet|total)\b'
+    priority: 80
+  - category: Wartung
+    pattern: '\b(werkstatt|reparatur|inspektion|tüv|dekra)\b'
+    priority: 80
+  - category: Öffentliche Verkehrsmittel
+    pattern: '\b(bahn|deutsche bahn|db|train)\b'
+    priority: 75
+  - category: Öffentliche Verkehrsmittel
+    pattern: '\b(bus|ticket|fahrschein|mvg|hvv)\b'
+    priority: 75
+
+  # Lebensmittel & Einkauf
+  - category: Lebensmittel
+    pattern: '\b(rewe|edeka|aldi|lidl|penny|netto|kaufland)\b'
+    priority: 80
+  - category: Lebensmittel
+    pattern: '\b(supermarkt|lebensmittel)\b'
+    priority: 70
+  - category: Lebensmittel
+    pattern: '\b(bäcker|bäckerei|backhaus)\b'
+    priority: 70
+  - category: Lebensmittel
+    pattern: '\b(metzger|metzgerei|fleischer)\b'
+    priority: 70
+
+  # Gastronomie
+  - category: Lebensmittel
+    pattern: '\b(restaurant|pizza|burger|döner|sushi)\b'
+    priority: 60
+  - category: Lebensmittel
+    pattern: '\b(café|coffee|starbucks|kaffee)\b'
+    priority: 60
+  - category: Lebensmittel
+    pattern: '\b(bar|kneipe|pub)\b'
+    priority: 60
+
+  # Gesundheit
+  - category: Apotheke
+    pattern: '\b(apotheke|pharma)\b'
+    priority: 80
+  # \b am Ende würde „Arztbesuch“ verfehlen; Anker nur am Wortanfang
+  - category: Arzt
+    pattern: '\b(arzt|zahnarzt)'
+    priority: 80
+  - category: Krankenhaus
+    pattern: '\b(krankenhaus|klinik|notaufnahme)\b'
+    priority: 80
+  - category: Krankenversicherung
+    pattern: '\b(krankenversicherung|krankenkasse|gesundheitskasse)\b'
+    priority: 85
+
+  # Versicherungen
+  - category: KFZ-Versicherung
+    pattern: '\b(kfz.*versicherung|autoversicherung)\b'
+    priority: 85
+  - category: Haftpflicht
+    pattern: '\b(haftpflicht.*versicherung|haftpflicht)\b'
+    priority: 85
+  - category: Hausrat
+    pattern: '\b(hausrat.*versicherung|hausrat)\b'
+    priority: 85
+  - category: Versicherungen
+    pattern: '\b(rechtsschutz|berufsunfähigkeit)\b'
+    priority: 75
+  - category: Versicherungen
+    pattern: '\b(versicherung|insurance)\b'
+    priority: 60
+
+  # Vermietung Ausgaben
+  - category: Vermietung Pacht
+    pattern: '\b(pacht|pachtzins|verpachtung.*zahlung)\b'
+    priority: 85
+  - category: Vermietung Sonnenberg
+    pattern: '\b(sonnenberg.*kosten|sonnenberg.*reparatur|grundsteuer.*sonnenberg)\b'
+    priority: 85
+  - category: Vermietung Zum Neuhof
+    pattern: '\b(neuhof.*kosten|neuhof.*reparatur|zum neuhof.*reparatur|grundsteuer.*neuhof)\b'
+    priority: 85
+  - category: Vermietung Weinbergsgelände
+    pattern: '\b(weinberg.*kosten|weinberg.*steuer|weinberg.*pacht|grundsteuer.*weinberg)\b'
+    priority: 85
+
+  # Online & Entertainment
+  - category: Online Shopping
+    pattern: '\b(amazon|ebay)\b'
+    priority: 70
+  - category: Online Shopping
+    pattern: '\b(paypal)\b'
+    priority: 60
+  - category: Entertainment
+    pattern: '\b(netflix|spotify|youtube.*premium|disney\+|prime.*video)\b'
+    priority: 80
+  - category: Entertainment
+    pattern: '\b(abo|abonnement|subscription)\b'
+    priority: 60
