@@ -1,6 +1,18 @@
 # Projektanalyse: Finanzen
 
-Stand: 2026-03-19
+Stand Analyse: 2026-03-19 · **Umsetzungsstand: 2026-03-12**
+
+## Umsetzungsstand (erledigt)
+
+| Punkt | Status | Kurz |
+|-------|--------|------|
+| **1** Grafana kein Default-Passwort | ✅ | `GF_SECURITY_ADMIN_PASSWORD` aus `.env`; `deploy.sh` bricht bei fehlendem Passwort / `admin` ab |
+| **2** Grafana-Image pinnen | ✅ | `grafana/grafana:11.4.3` in `docker-compose.yml` |
+| **3** DB-Port nicht öffentlich | ✅ | Kein `3306:3306` im Standard-Compose; optional `docker-compose.debug-db.yml` (127.0.0.1) |
+| **4** Transaktions-Duplikate | ✅ | `transaction_hash` + Unique-Index; `INSERT IGNORE`; `backfill_transaction_hash.py`; siehe `DEPLOYMENT.md` |
+| **7** pytest (Teil) | 🔶 | `tests/test_transaction_hash.py`; vollständige Migration der `scripts/test_*.py` → `tests/` offen |
+
+---
 
 ## Kurzfazit
 Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Verschlüsselung für Credentials, klare Script-Trennung). Für die nächste Reifestufe sind vor allem **Betriebsstabilität**, **Testbarkeit** und **Sicherheits-Härtung** die größten Hebel.
@@ -20,29 +32,24 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 
 ## P1 — Sicherheit & Produktionshärtung
 
-### 1) Keine Default-Credentials im Runtime-Setup
-- In `docker-compose.yml` ist Grafana mit `admin/admin` vordefiniert. Das ist für lokale Entwicklung okay, sollte aber in produktionsnahen Umgebungen per `.env`/Secrets erzwungen überschrieben werden.
+### 1) Keine Default-Credentials im Runtime-Setup — ✅ umgesetzt
+- ~~In `docker-compose.yml` ist Grafana mit `admin/admin` vordefiniert.~~ Ersetzt durch `GRAFANA_ADMIN_PASSWORD` (siehe `.env.example`); `deploy.sh` validiert.
 - Empfehlung:
-  - `GF_SECURITY_ADMIN_PASSWORD` auf `${GRAFANA_ADMIN_PASSWORD}` umstellen.
-  - Startup-Check ergänzen: Deployment abbrechen, wenn Default-Passwörter gesetzt sind.
+  - ~~`GF_SECURITY_ADMIN_PASSWORD` auf `${GRAFANA_ADMIN_PASSWORD}` umstellen.~~
+  - ~~Startup-Check~~ → in `deploy.sh` integriert.
 
-### 2) Versions-Pinning bei Container-Images
-- `grafana/grafana:latest` ist nicht reproduzierbar. Bei Updates können ungeplante Breaking Changes auftreten.
-- Empfehlung: Version pinnen (z. B. `grafana/grafana:11.1.0`) und Update-Prozess dokumentieren.
+### 2) Versions-Pinning bei Container-Images — ✅ umgesetzt
+- ~~`grafana/grafana:latest`~~ → **`grafana/grafana:11.4.3`**; Hinweise in `documentation/DEPLOYMENT.md`.
 
-### 3) DB-Port nicht standardmäßig veröffentlichen
-- `3306:3306` öffnet die Datenbank unnötig nach außen.
-- Empfehlung: Nur intern im Docker-Netz erreichbar machen; Port-Mapping optional via Profil (`docker compose --profile debug`).
+### 3) DB-Port nicht standardmäßig veröffentlichen — ✅ umgesetzt
+- ~~`3306:3306`~~ entfernt aus Standard-`docker-compose.yml`; optional **`docker-compose.debug-db.yml`** (Bind `127.0.0.1:3306`).
 
 ---
 
 ## P1 — Zuverlässigkeit & Datenqualität
 
-### 4) Eindeutigkeit von Transaktionen sicherstellen
-- Im Schema fehlt eine technische Duplikat-Schranke für wiederholte Imports.
-- Empfehlung:
-  - `external_id`/`hash` pro Transaktion einführen.
-  - Unique-Index (z. B. `account_id + date + amount + hash`) für idempotente Ingestion.
+### 4) Eindeutigkeit von Transaktionen sicherstellen — ✅ umgesetzt
+- ~~Im Schema fehlt eine technische Duplikat-Schranke~~ → Spalte **`transaction_hash`**, Unique **`(account_id, transaction_hash)`**, `compute_transaction_hash()` in `scripts/utils.py`, **`INSERT IGNORE`** in PDF/FinTS-Imports, **`scripts/backfill_transaction_hash.py`**, Migration in `setup_db.py` / `deploy.sh`.
 
 ### 5) Kategorisierungsregeln stärker aus Code in Konfiguration verschieben
 - Große Regelblöcke sind direkt im Code eingebettet. Das erschwert Pflege, Reviews und domänenspezifische Anpassungen.
@@ -59,12 +66,9 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 
 ## P2 — Teststrategie & Wartbarkeit
 
-### 7) Von Script-basierten Tests zu pytest-Suite
-- Aktuelle Tests sind ausführbare Skripte mit `print`/`sys.exit`. Das funktioniert, skaliert aber schlecht.
-- Empfehlung:
-  - `tests/`-Struktur + `pytest` + Fixtures.
-  - Unit-Tests für Parser/Kategorisierung, Integrations-Tests gegen Test-DB (Container).
-  - CI-Pipeline mit mindestens: Lint, Type-Check, Test, Security-Scan.
+### 7) Von Script-basierten Tests zu pytest-Suite — 🔶 teilweise
+- **`tests/test_transaction_hash.py`** ergänzt (CI führt `pytest tests/` aus, falls vorhanden).
+- Offen: `scripts/test_parse_pdfs.py` / `test_categorization.py` vollständig nach `tests/` migrieren, Fixtures, Integrationstests gegen Test-DB.
 
 ### 8) Typisierung und statische Qualität erhöhen
 - Bereits vorhandene Type Hints sind ein guter Anfang.
@@ -98,13 +102,13 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 ## 30-60-90 Tage Vorschlag
 
 ### 0-30 Tage (Quick Wins)
-- Grafana-Passwort/Version härten
-- DB-Port nur optional freigeben
-- `pytest`-Grundgerüst + erste CI-Pipeline
-- zentraler DB-Context-Manager
+- ~~Grafana-Passwort/Version härten~~ ✅
+- ~~DB-Port nur optional freigeben~~ ✅
+- `pytest`-Grundgerüst + erste CI-Pipeline → 🔶 (erste Tests + CI vorhanden; Ausbau offen)
+- zentraler DB-Context-Manager → offen
 
 ### 31-60 Tage
-- Idempotenz-Konzept für Ingestion (Hash + Unique-Index)
+- ~~Idempotenz-Konzept für Ingestion (Hash + Unique-Index)~~ ✅
 - Kategorisierungsregeln aus Code in YAML überführen
 - Schema-Validierung für Konfiguration
 
@@ -117,9 +121,9 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 
 ## Konkrete nächste Tasks (umsetzbar in Tickets)
 
-1. **SEC-01:** Entferne `grafana:latest`, pinne Version, Passwort via Env-Variable erzwingen.  
-2. **OPS-02:** Mache DB-Port-Mapping optional (Debug-Profil).  
-3. **DATA-03:** Führe `transaction_hash` ein + Unique-Index + Backfill-Skript.  
-4. **QA-04:** Migriere `scripts/test_*.py` in `tests/` mit `pytest`.  
+1. ~~**SEC-01:** Entferne `grafana:latest`, pinne Version, Passwort via Env-Variable erzwingen.~~ ✅  
+2. ~~**OPS-02:** Mache DB-Port-Mapping optional (Debug-Profil).~~ ✅ (`docker-compose.debug-db.yml`)  
+3. ~~**DATA-03:** Führe `transaction_hash` ein + Unique-Index + Backfill-Skript.~~ ✅  
+4. **QA-04:** Migriere `scripts/test_*.py` in `tests/` mit `pytest`. → 🔶 (nur `test_transaction_hash` in `tests/`)  
 5. **ARCH-05:** Regelengine entkoppeln (YAML-first + Validierung).
 
