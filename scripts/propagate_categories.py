@@ -20,7 +20,7 @@ import argparse
 import logging
 import re
 import sys
-from collections import Counter
+from collections import Counter, OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -64,6 +64,7 @@ def propagate(
     collapse_dates: bool,
     substring_min_len: int,
     use_substring: bool,
+    show_samples: bool = False,
 ) -> Tuple[int, int]:
     """
     Returns: (updated_count, candidates_considered)
@@ -74,7 +75,7 @@ def propagate(
         cursor = conn.cursor()
 
         cursor.execute(
-            f"""
+            """
             SELECT id, account_id, description, category_id
             FROM transactions
             WHERE category_id IS NOT NULL AND description IS NOT NULL AND TRIM(description) <> ''
@@ -83,13 +84,27 @@ def propagate(
         labeled = cursor.fetchall()
 
         cursor.execute(
-            f"""
+            """
             SELECT id, account_id, description
             FROM transactions
             WHERE category_id IS NULL AND description IS NOT NULL AND TRIM(description) <> ''
             """
         )
         unlabeled = cursor.fetchall()
+
+    logger.info(
+        "Referenz: %s bereits kategorisierte Transaktionen (mit Beschreibung), "
+        "%s unkategorisierte mit Text.",
+        len(labeled),
+        len(unlabeled),
+    )
+    if not labeled:
+        logger.warning(
+            "Keine gelabelten Transaktionen – Propagierung hat nichts zum Anwenden. "
+            "Zuerst z. B. „categorize.py“ (Regeln) oder manuelle Zuordnung ausführen, "
+            "dann propagate_categories erneut starten."
+        )
+        return 0, len(unlabeled)
 
     # Referenz: (account_id?, norm) -> category_id (Mehrheit)
     ref_exact: Dict[Tuple[Optional[int], str], List[int]] = {}
@@ -145,6 +160,18 @@ def propagate(
                         (tid, r_cat, f"substring(len={len(r_norm)})")
                     )
                     break
+
+    if show_samples and (ref_rows or unlabeled):
+        # Stichproben: normierte Texte von gelabelt vs. ungelabelt (für Diagnose)
+        seen_labeled: OrderedDict[str, None] = OrderedDict()
+        for _acc, norm, _cat in ref_rows[:15]:
+            seen_labeled[norm[:80] + ("…" if len(norm) > 80 else "")] = None
+        seen_unlabeled: OrderedDict[str, None] = OrderedDict()
+        for _tid, _acc, desc in unlabeled[:15]:
+            n = normalize_description(desc, collapse_dates=collapse_dates)
+            seen_unlabeled[(n[:80] + ("…" if len(n) > 80 else ""))] = None
+        logger.info("Beispiele norm. Beschreibung (gelabelt): %s", list(seen_labeled.keys())[:5])
+        logger.info("Beispiele norm. Beschreibung (unkategorisiert): %s", list(seen_unlabeled.keys())[:5])
 
     if dry_run:
         for tid, cid, reason in updates[:50]:
@@ -209,6 +236,11 @@ def main() -> None:
         help="Mindestlänge des gelabelten Texts für Teilstring-Match (Default: 8)",
     )
     p.add_argument("-q", "--quiet", action="store_true", help="Weniger Log-Ausgabe")
+    p.add_argument(
+        "--show-samples",
+        action="store_true",
+        help="Stichproben normierter Beschreibungen (gelabelt vs. unkategorisiert) ausgeben",
+    )
     args = p.parse_args()
 
     if args.quiet:
@@ -224,6 +256,7 @@ def main() -> None:
         collapse_dates=args.collapse_dates,
         substring_min_len=max(1, args.substring_min_len),
         use_substring=not args.no_substring,
+        show_samples=args.show_samples,
     )
 
 

@@ -173,6 +173,9 @@ docker compose exec app python3 scripts/parse_pdfs.py
 # Transaktionen kategorisieren
 docker compose exec app python3 scripts/categorize.py
 
+# Nach neuen Einträgen in config/categories.yaml: Kategorien in die DB übernehmen
+docker compose exec app python3 scripts/setup_db.py --categories-only
+
 # Mit Force-Option (auch bereits kategorisierte neu zuordnen)
 docker compose exec app python3 scripts/categorize.py --force
 
