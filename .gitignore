@@ -19,11 +19,8 @@ data/inbox/*.pdf
 data/processed/*.pdf
 data/inbox/*.csv
 data/processed/*.csv
-data/db/*.db
-data/db/*.sqlite
-data/db/*.sqlite3
-data/db/pgdata/
-data/db/mysql/
+# MariaDB-/Volume-Daten (liegen direkt unter data/db/, nicht nur unter mysql/)
+data/db/
 data/logs/*.log
 
 # Backups

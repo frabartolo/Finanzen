@@ -73,61 +73,6 @@ print_error() {
     echo -e "${RED}✗ $1${NC}"
 }
 
-# Projekt-Root: FINANZEN_ROOT, sonst /opt/finanzen mit compose-Datei, sonst Repo-Verzeichnis dieses Skripts
-if [[ -n "${FINANZEN_ROOT:-}" ]]; then
-  PROJECT_ROOT="$FINANZEN_ROOT"
-elif [[ -f /opt/finanzen/docker-compose.yml ]]; then
-  PROJECT_ROOT="/opt/finanzen"
-else
-  PROJECT_ROOT="$SCRIPT_DIR"
-fi
-cd "$PROJECT_ROOT" || { echo "Kann nicht nach $PROJECT_ROOT wechseln" >&2; exit 1; }
-
-if [ "$RESET_DB" = true ]; then
-  echo "=== Finanzen Deployment === ($ENVIRONMENT, RESET_DB=true)"
-else
-  echo "=== Finanzen Deployment === ($ENVIRONMENT)"
-fi
-echo "Projekt: $PROJECT_ROOT"
-echo ""
-
-install_prereqs() {
-  echo "Installiere Voraussetzungen (root/sudo erforderlich)..."
-  if command -v apt-get &>/dev/null; then
-    apt-get update
-    apt-get install -y ca-certificates curl git
-    install -m 0755 -d /etc/apt/keyrings
-    if ! curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc 2>/dev/null; then
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-    fi
-    chmod a+r /etc/apt/keyrings/docker.asc
-    . /etc/os-release
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" >/etc/apt/sources.list.d/docker.list
-    apt-get update
-    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  elif command -v dnf &>/dev/null; then
-    dnf install -y docker docker-compose-plugin || dnf install -y docker docker-compose
-    systemctl enable --now docker || true
-  else
-    echo "Unbekannter Paketmanager. Bitte Docker Engine und Docker Compose (V2-Plugin) manuell installieren:" >&2
-    echo "  https://docs.docker.com/engine/install/" >&2
-    exit 1
-  fi
-  echo ""
-  echo "Hinweis: Den Account, unter dem deploy.sh/docker läuft, in die Gruppe »docker« aufnehmen,"
-  echo '  z. B.: sudo usermod -aG docker $USER   (danach neu einloggen oder: newgrp docker)'
-}
-
-if [ "$INSTALL_PREREQS" = true ]; then
-  if [ "$(id -u)" -ne 0 ]; then
-    echo "Bitte mit Root-Rechten ausführen: sudo $0 --install-prereqs" >&2
-    exit 1
-  fi
-  install_prereqs
-  echo "Fertig. Anschließend ohne sudo normal deployen: $0 $ENVIRONMENT"
-  exit 0
-fi
-
 # Lade .env Datei wenn vorhanden (nach cd in PROJECT_ROOT)
 if [ -f ".env" ]; then
     set -a
@@ -160,7 +105,8 @@ DEPLOY_COMMIT_MSG="Auto-commit before deployment $(date '+%Y-%m-%d %H:%M:%S')"
 if [[ -d .git ]]; then
   if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
     print_warning "Lokale Änderungen gefunden - erstelle automatischen Commit"
-    git add -A
+    # data/db/ = MariaDB-Volume; oft root/mysql im Container → ohne Exclude scheitert git add (Permission denied)
+    git add -A -- . ':(exclude)data/db'
     git commit -m "$DEPLOY_COMMIT_MSG" || print_warning "Git commit übersprungen oder fehlgeschlagen"
   fi
   if git pull --rebase 2>/dev/null; then
