@@ -10,6 +10,9 @@
 # PDFs alle 2 Stunden verarbeiten
 0 */2 * * * cd /app && python3 scripts/parse_pdfs.py >> /app/data/logs/parse_pdfs.log 2>&1
 
+# Postbank-CSV (data/inbox/**/*.csv) alle 2 Stunden
+5 */2 * * * cd /app && python3 scripts/import_postbank_csv.py >> /app/data/logs/import_postbank_csv.log 2>&1
+
 # Monitoring täglich um 8:00 Uhr
 0 8 * * * /bin/bash /app/cron/monitor.sh >> /app/data/logs/monitor.log 2>&1
 

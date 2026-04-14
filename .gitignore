@@ -17,6 +17,8 @@ ENV/
 # Data & Logs
 data/inbox/*.pdf
 data/processed/*.pdf
+data/inbox/*.csv
+data/processed/*.csv
 data/db/*.db
 data/db/*.sqlite
 data/db/*.sqlite3

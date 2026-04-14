@@ -125,7 +125,7 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
 ## 📁 Projektstruktur
 
 - `config/` - Konfigurationsdateien (Konten, Kategorien, Einstellungen)
-- `data/inbox/` - Hier PDFs ablegen für automatische Verarbeitung
+- `data/inbox/` - Hier PDFs und Postbank-CSV-Exports ablegen für automatische Verarbeitung
 - `scripts/` - Python-Scripts für Datenerfassung und -verarbeitung
 - `db/` - Datenbank-Schema und Migrationen
 - `grafana/` - Dashboard-Konfigurationen
@@ -136,7 +136,7 @@ Vollautomatisierter Finanzüberblick – komplett lokal, sicher und reproduzierb
 Das System führt automatisch folgende Tasks aus:
 
 - **Täglich 06:00**: FinTS-Daten von Banken abrufen
-- **Alle 2 Stunden**: Neue PDFs im Inbox-Ordner verarbeiten
+- **Alle 2 Stunden**: Neue PDFs und Postbank-CSV-Dateien im Inbox-Ordner verarbeiten
 - **Täglich 07:00**: Transaktionen kategorisieren
 
 Cron-Jobs können in den `cron/*.cron` Dateien angepasst werden.
@@ -152,6 +152,11 @@ docker compose exec app python3 scripts/fetch_postbank.py
 
 # PDFs manuell verarbeiten (aus data/inbox/)
 docker compose exec app python3 scripts/parse_pdfs.py
+
+# Postbank-Umsätze-CSV (Semikolon, Kopf „Umsätze“ / „Buchungstag“)
+docker compose exec app python3 scripts/import_postbank_csv.py
+# Einzeldatei, ohne Verschieben nach processed/: --no-move
+# Konto erzwingen: --account-id 1
 
 # Transaktionen kategorisieren
 docker compose exec app python3 scripts/categorize.py
