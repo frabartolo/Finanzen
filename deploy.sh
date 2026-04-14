@@ -10,6 +10,9 @@
 #   FINANZEN_ROOT              Absoluter Pfad zum Repo (Default: siehe unten)
 #   FINANZEN_CHOWN_USER        z.B. finanzen:finanzen für chown (Default: User finanzen falls vorhanden)
 #
+# Git: Es wird kein automatischer Commit erzeugt. git pull --rebase nur bei leerem
+# Arbeitsverzeichnis (git status); sonst Hinweis und Deploy mit lokalem Stand.
+#
 # Projektverzeichnis: FINANZEN_ROOT gesetzt, sonst /opt/finanzen falls docker-compose.yml dort existiert,
 # sonst Verzeichnis dieser deploy.sh (z.B. frischer Clone unter ~/Finanzen).
 #
@@ -99,20 +102,17 @@ if [ "$GRAFANA_ADMIN_PASSWORD" = "admin" ]; then
     exit 1
 fi
 
-# Git: Pull / lokale Commits (nur bei Git-Repository)
+# Git: Pull ohne Auto-Commit (Server: data/db, Rechte, keine Überraschungs-Commits)
 echo "0. Aktualisiere Code-Repository..."
-DEPLOY_COMMIT_MSG="Auto-commit before deployment $(date '+%Y-%m-%d %H:%M:%S')"
 if [[ -d .git ]]; then
-  if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
-    print_warning "Lokale Änderungen gefunden - erstelle automatischen Commit"
-    # data/db/ = MariaDB-Volume; oft root/mysql im Container → ohne Exclude scheitert git add (Permission denied)
-    git add -A -- . ':(exclude)data/db'
-    git commit -m "$DEPLOY_COMMIT_MSG" || print_warning "Git commit übersprungen oder fehlgeschlagen"
-  fi
-  if git pull --rebase 2>/dev/null; then
-    print_success "Repository aktualisiert"
+  if [ -z "$(git status --porcelain 2>/dev/null)" ]; then
+    if git pull --rebase 2>/dev/null; then
+      print_success "Repository aktualisiert (git pull)"
+    else
+      print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
+    fi
   else
-    print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
+    print_warning "Git: lokale Änderungen oder ungetrackte Dateien – kein git pull. Bitte committen, stashen oder bereinigen; Deploy nutzt den aktuellen Stand."
   fi
 else
   print_warning "Kein .git – überspringe pull (Kopie ohne Repository?)"

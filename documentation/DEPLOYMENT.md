@@ -83,6 +83,7 @@ chmod +x deploy.sh
 ```
 
 **Features**:
+- Git: **kein** automatischer Commit; `git pull --rebase` nur bei **sauberem** Arbeitsverzeichnis (sonst Hinweis, Deploy mit lokalem Code)
 - Pre-deployment Checks
 - Automatisches Backup
 - Image Build & Pull
