@@ -89,6 +89,26 @@ chmod +x deploy.sh
 - Service Health Checks
 - Rollback bei Fehlern
 - Cleanup alter Backups
+- Optional: `--install-prereqs` installiert Docker/Git (Ubuntu/Debian/Fedora); siehe unten
+
+### Frische Installation (neuer Linux-Rechner)
+
+`/opt/finanzen` muss nicht existieren. Üblich ist ein Clone unter `/opt/finanzen`, aber jedes Verzeichnis reicht. `deploy.sh` ermittelt das Projektverzeichnis so: zuerst `FINANZEN_ROOT` (falls gesetzt), sonst `/opt/finanzen` wenn dort eine `docker-compose.yml` liegt, sonst das Verzeichnis, in dem `deploy.sh` liegt.
+
+**Ablauf:**
+
+1. Verzeichnis anlegen und Repository klonen, z. B.:
+   `sudo mkdir -p /opt/finanzen && sudo chown "$USER:$USER" /opt/finanzen` und `git clone <repo-url> /opt/finanzen`
+2. In das Repo wechseln, `.env` aus `.env.example` erstellen und Passwörter setzen (mindestens `GRAFANA_ADMIN_PASSWORD`).
+3. Docker einrichten: `sudo ./deploy.sh --install-prereqs` (installiert Docker Engine inkl. Compose-Plugin sowie Git; Root erforderlich).
+4. Den Account, unter dem du `docker compose` / `deploy.sh` ausführst, in die Gruppe `docker` aufnehmen, z. B. `sudo usermod -aG docker "$USER"`, danach neu einloggen oder `newgrp docker`.
+
+**Welcher Linux-User?**
+
+- **Empfohlen (einfach):** Dein normaler Login-User mit `docker`-Gruppe. Kein zusätzlicher Systemuser nötig.
+- **Optional (isolierter Betrieb):** Systemuser `finanzen` anlegen, ebenfalls in `docker` aufnehmen, Repo-Verzeichnis ihm zuordnen. Für das optionale `chown` am Ende von `deploy.sh` entweder User `finanzen` existieren lassen oder `FINANZEN_CHOWN_USER=finanzen:finanzen` setzen (siehe Kopfkommentar in `deploy.sh`).
+
+Anschließend: `./deploy.sh production`
 
 ### Rollback Script (`rollback.sh`)
 
@@ -121,7 +141,7 @@ Folgende Secrets in GitHub Settings → Secrets → Actions hinzufügen:
 
 ### 2. Server vorbereiten
 
-Auf dem Zielserver:
+Auf dem Zielserver. Für eine kompakte Checkliste auf einem leeren Rechner siehe oben **Frische Installation (neuer Linux-Rechner)**; im Folgenden die manuelle Variante mit Docker-Install-Skript:
 
 ```bash
 # Repository klonen

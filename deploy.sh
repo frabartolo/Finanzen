@@ -1,23 +1,58 @@
 #!/bin/bash
 # Deployment Script für lokale oder manuelle Deployments
-# Optionen: --reset-db   Transaktionen und Dokumente vor Deployment leeren
+#
+# Optionen:
+#   production|development Zielumgebung (Default: production)
+#   --reset-db               Transaktionen und Dokumente nach Deploy leeren
+#   --install-prereqs        Docker/Git installieren (apt/dnf), dann normal weitermachen
+#
+# Umgebungsvariablen:
+#   FINANZEN_ROOT              Absoluter Pfad zum Repo (Default: siehe unten)
+#   FINANZEN_CHOWN_USER        z.B. finanzen:finanzen für chown (Default: User finanzen falls vorhanden)
+#
+# Projektverzeichnis: FINANZEN_ROOT gesetzt, sonst /opt/finanzen falls docker-compose.yml dort existiert,
+# sonst Verzeichnis dieser deploy.sh (z.B. frischer Clone unter ~/Finanzen).
+#
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'EOF'
+Finanzen deploy.sh
+
+  ./deploy.sh [production|development] [--reset-db] [--install-prereqs]
+
+  --install-prereqs   Installiert Docker & Git (Ubuntu/Debian: apt; Fedora: dnf).
+ Anschließend ggf. neu einloggen, damit die Gruppe „docker“ greift.
+
+  FINANZEN_ROOT=/pfad/zum/repo ./deploy.sh
+
+Ersteinrichtung auf neuem Server: siehe documentation/DEPLOYMENT.md („Frische Installation“).
+EOF
+}
+
 RESET_DB=false
+INSTALL_PREREQS=false
+POS_ARGS=()
 for arg in "$@"; do
-    case "$arg" in
-        --reset-db) RESET_DB=true ;;
-    esac
+  case "$arg" in
+    --reset-db)       RESET_DB=true ;;
+    --install-prereqs) INSTALL_PREREQS=true ;;
+    --help|-h)        usage; exit 0 ;;
+    -*)
+      echo "Unbekannte Option: $arg" >&2
+      usage >&2
+      exit 1
+      ;;
+    *) POS_ARGS+=("$arg") ;;
+  esac
 done
 
-ENVIRONMENT=${1:-production}
-[ "$1" = "--reset-db" ] && ENVIRONMENT=production
+ENVIRONMENT="${POS_ARGS[0]:-production}"
+[[ "$ENVIRONMENT" == --* ]] && ENVIRONMENT=production
 COMPOSE_FILE="docker-compose.yml"
 BACKUP_DIR="./backups"
-
-echo "=== Finanzen Deployment Script ==="
-echo "Environment: $ENVIRONMENT"
-echo "=================================="
 
 # Farben für Output
 RED='\033[0;31m'
@@ -38,9 +73,67 @@ print_error() {
     echo -e "${RED}✗ $1${NC}"
 }
 
-# Lade .env Datei wenn vorhanden
+# Projekt-Root: FINANZEN_ROOT, sonst /opt/finanzen mit compose-Datei, sonst Repo-Verzeichnis dieses Skripts
+if [[ -n "${FINANZEN_ROOT:-}" ]]; then
+  PROJECT_ROOT="$FINANZEN_ROOT"
+elif [[ -f /opt/finanzen/docker-compose.yml ]]; then
+  PROJECT_ROOT="/opt/finanzen"
+else
+  PROJECT_ROOT="$SCRIPT_DIR"
+fi
+cd "$PROJECT_ROOT" || { echo "Kann nicht nach $PROJECT_ROOT wechseln" >&2; exit 1; }
+
+if [ "$RESET_DB" = true ]; then
+  echo "=== Finanzen Deployment === ($ENVIRONMENT, RESET_DB=true)"
+else
+  echo "=== Finanzen Deployment === ($ENVIRONMENT)"
+fi
+echo "Projekt: $PROJECT_ROOT"
+echo ""
+
+install_prereqs() {
+  echo "Installiere Voraussetzungen (root/sudo erforderlich)..."
+  if command -v apt-get &>/dev/null; then
+    apt-get update
+    apt-get install -y ca-certificates curl git
+    install -m 0755 -d /etc/apt/keyrings
+    if ! curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc 2>/dev/null; then
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    fi
+    chmod a+r /etc/apt/keyrings/docker.asc
+    . /etc/os-release
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" >/etc/apt/sources.list.d/docker.list
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  elif command -v dnf &>/dev/null; then
+    dnf install -y docker docker-compose-plugin || dnf install -y docker docker-compose
+    systemctl enable --now docker || true
+  else
+    echo "Unbekannter Paketmanager. Bitte Docker Engine und Docker Compose (V2-Plugin) manuell installieren:" >&2
+    echo "  https://docs.docker.com/engine/install/" >&2
+    exit 1
+  fi
+  echo ""
+  echo "Hinweis: Den Account, unter dem deploy.sh/docker läuft, in die Gruppe »docker« aufnehmen,"
+  echo '  z. B.: sudo usermod -aG docker $USER   (danach neu einloggen oder: newgrp docker)'
+}
+
+if [ "$INSTALL_PREREQS" = true ]; then
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "Bitte mit Root-Rechten ausführen: sudo $0 --install-prereqs" >&2
+    exit 1
+  fi
+  install_prereqs
+  echo "Fertig. Anschließend ohne sudo normal deployen: $0 $ENVIRONMENT"
+  exit 0
+fi
+
+# Lade .env Datei wenn vorhanden (nach cd in PROJECT_ROOT)
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    # shellcheck source=/dev/null
+    source .env
+    set +a
     print_success ".env Datei geladen"
 else
     print_warning ".env Datei nicht gefunden - verwende Defaults"
@@ -61,25 +154,22 @@ if [ "$GRAFANA_ADMIN_PASSWORD" = "admin" ]; then
     exit 1
 fi
 
-# Navigate to project directory and pull latest changes
+# Git: Pull / lokale Commits (nur bei Git-Repository)
 echo "0. Aktualisiere Code-Repository..."
-cd /opt/finanzen
-
-# Standard commit message für automatische Commits
 DEPLOY_COMMIT_MSG="Auto-commit before deployment $(date '+%Y-%m-%d %H:%M:%S')"
-
-# Prüfe ob es lokale Änderungen gibt
-if [ -n "$(git status --porcelain)" ]; then
+if [[ -d .git ]]; then
+  if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
     print_warning "Lokale Änderungen gefunden - erstelle automatischen Commit"
     git add -A
-    git commit -m "$DEPLOY_COMMIT_MSG"
-fi
-
-# Pull latest changes
-if git pull --rebase; then
+    git commit -m "$DEPLOY_COMMIT_MSG" || print_warning "Git commit übersprungen oder fehlgeschlagen"
+  fi
+  if git pull --rebase 2>/dev/null; then
     print_success "Repository aktualisiert"
-else
+  else
     print_warning "Git pull fehlgeschlagen - fahre mit lokalem Code fort"
+  fi
+else
+  print_warning "Kein .git – überspringe pull (Kopie ohne Repository?)"
 fi
 
 # Pre-deployment Checks
@@ -88,13 +178,15 @@ echo "1. Pre-deployment Checks..."
 # Check Docker
 if ! command -v docker &> /dev/null; then
     print_error "Docker ist nicht installiert!"
+    echo "  Versuch: $0 --install-prereqs   (Ubuntu/Debian/Fedora)"
+    echo "  Oder: https://docs.docker.com/engine/install/"
     exit 1
 fi
 print_success "Docker gefunden"
 
-# Check Docker Compose
-if ! command -v docker compose &> /dev/null; then
-    print_error "Docker Compose ist nicht installiert!"
+# Check Docker Compose (Plugin)
+if ! docker compose version &> /dev/null; then
+    print_error "Docker Compose (Plugin) nicht verfügbar – z.B. Paket docker-compose-plugin installieren"
     exit 1
 fi
 print_success "Docker Compose gefunden"
@@ -104,8 +196,21 @@ if [ ! -f "config/settings.yaml" ]; then
     print_warning "settings.yaml nicht gefunden - wird beim ersten Start erstellt"
 fi
 
-# Berechtigungen sicherstellen (Grafana/Container brauchen Zugriff)
-sudo chown -R finanzen:finanzen /opt/finanzen
+# Berechtigungen (optionaler Systemuser finanzen – siehe DEPLOYMENT.md)
+CHOWN_SPEC="${FINANZEN_CHOWN_USER:-}"
+if [[ -z "$CHOWN_SPEC" ]] && id finanzen &>/dev/null; then
+  CHOWN_SPEC="finanzen:finanzen"
+fi
+if [[ -n "$CHOWN_SPEC" ]]; then
+  if sudo chown -R "$CHOWN_SPEC" "$PROJECT_ROOT"; then
+    print_success "Besitzer gesetzt: $CHOWN_SPEC → $PROJECT_ROOT"
+  else
+    print_warning "chown fehlgeschlagen – manuell prüfen"
+  fi
+else
+  print_warning "Kein User „finanzen“ und FINANZEN_CHOWN_USER nicht gesetzt – chown übersprungen."
+  echo "         Deploy läuft als $(whoami). Optional: dedizierten User anlegen (documentation/DEPLOYMENT.md)."
+fi
 
 # Create necessary directories
 echo ""
@@ -267,8 +372,8 @@ print_success "Deployment erfolgreich abgeschlossen!"
 echo "=================================="
 echo ""
 echo "Zugriff:"
-echo "  - Grafana:  http://localhost:3000 (admin/admin)"
-echo "  - Database: localhost:3306"
+echo "  - Grafana:  http://localhost:3000 (Login siehe .env GRAFANA_ADMIN_*)"
+echo "  - MariaDB:   nur im Docker-Netz (Port 3306 nicht nach außen); Debug: docker-compose.debug-db.yml"
 echo ""
 echo "Nützliche Befehle:"
 echo "  - Logs anzeigen:     docker compose logs -f"

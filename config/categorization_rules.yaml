@@ -5,7 +5,7 @@
 rules:
   # Einnahmen
   - category: Gehalt
-    pattern: '\b(gehalt|lohn|salary)\b'
+    pattern: '\b(gehalt|lohn|salary|rente)\b'
     priority: 100
   - category: Bonus
     pattern: '\b(bonus|prämie|sonderzahlung)\b'
