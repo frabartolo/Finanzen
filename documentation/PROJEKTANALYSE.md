@@ -51,7 +51,7 @@ Das Projekt ist bereits solide aufgebaut (lokale Verarbeitung, Docker-Stack, Ver
 ## P1 — Zuverlässigkeit & Datenqualität
 
 ### 4) Eindeutigkeit von Transaktionen sicherstellen — ✅ umgesetzt
-- ~~Im Schema fehlt eine technische Duplikat-Schranke~~ → Spalte **`transaction_hash`**, Unique **`(account_id, transaction_hash)`**, `compute_transaction_hash()` in `scripts/utils.py`, **`INSERT IGNORE`** in PDF/FinTS-Imports, **`scripts/backfill_transaction_hash.py`**, Migration in `setup_db.py` / `deploy.sh`.
+- ~~Im Schema fehlt eine technische Duplikat-Schranke~~ → Spalte **`transaction_hash`**, Unique **`(account_id, transaction_hash)`**, `compute_transaction_hash()` (Konto+Datum+Betrag+Beschreibung, **ohne** Importquelle), **`INSERT IGNORE`** in PDF/FinTS/CSV-Imports, **`scripts/backfill_transaction_hash.py`**, Migration in `setup_db.py` / `deploy.sh`.
 
 ### 5) Kategorisierungsregeln stärker aus Code in Konfiguration verschieben — ✅ umgesetzt
 - ~~Regelblöcke im Code~~ → **`config/categorization_rules.yaml`** (`rules:` mit `category`, `pattern`, `priority`).

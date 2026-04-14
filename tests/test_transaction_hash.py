@@ -23,10 +23,11 @@ def test_hash_differs_on_amount():
     assert a != b
 
 
-def test_hash_differs_on_source():
+def test_hash_same_across_import_sources():
+    """Gleiche Buchung aus PDF vs. FinTS/CSV soll denselben Hash haben."""
     a = compute_transaction_hash(1, date(2024, 3, 1), 10.0, "X", "pdf")
     b = compute_transaction_hash(1, date(2024, 3, 1), 10.0, "X", "fints")
-    assert a != b
+    assert a == b
 
 
 def test_amount_normalization():

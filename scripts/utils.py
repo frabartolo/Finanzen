@@ -153,11 +153,15 @@ def compute_transaction_hash(
     date,
     amount,
     description: str,
-    source: str,
+    source: Optional[str] = None,
 ) -> str:
     """
     Deterministischer Hash für idempotente Imports (Duplikat-Schutz).
-    Gleiche logische Buchung = gleicher Hash bei gleichem account_id, date, amount, description, source.
+
+    Gleiche logische Buchung = gleicher Hash bei gleichem Konto, Datum, Betrag und
+    Beschreibung — **unabhängig von der Importquelle** (PDF, FinTS, CSV usw.).
+    Der Parameter ``source`` bleibt aus Kompatibilität mit älteren Aufrufern erlaubt,
+    fließt aber nicht in den Hash ein.
     """
     import hashlib
     from decimal import Decimal, InvalidOperation
@@ -172,7 +176,7 @@ def compute_transaction_hash(
     except (InvalidOperation, TypeError, ValueError):
         akey = str(amount)
     desc = (description or "").strip()
-    key = f"{account_id}|{dkey}|{akey}|{desc}|{source or ''}"
+    key = f"{account_id}|{dkey}|{akey}|{desc}"
     return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
