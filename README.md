@@ -243,7 +243,10 @@ Diese Repo-Konfiguration kann den Dienst aus `energie-monitor-app` ins gleiche D
 ```bash
 cd Finanzen
 chmod +x ./deploy-energie-monitor.sh
-./deploy-energie-monitor.sh production
+./deploy-energie-monitor.sh
+# optional mit Prod-/Dev-Overrides:
+# ./deploy-energie-monitor.sh production
+# ./deploy-energie-monitor.sh development
 ```
 
 Alternativ manuell:

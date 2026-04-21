@@ -7,9 +7,9 @@
 #   energie-monitor-app/          ← Geschwisterverzeichnis
 #
 # Aufruf (nach git pull / clone), typisch aus dem Finanzen-Repo:
-#   ./deploy-energie-monitor.sh
-#   ./deploy-energie-monitor.sh production
-#   ./deploy-energie-monitor.sh development
+#   ./deploy-energie-monitor.sh              # Default: base (wie deploy.sh: nur docker-compose.yml + Energie)
+#   ./deploy-energie-monitor.sh production   # + docker-compose.prod.yml
+#   ./deploy-energie-monitor.sh development  # + docker-compose.dev.yml
 #
 # Optionen:
 #   --full-stack       Gesamten Compose-Stack neu bauen/hochfahren (alle Services),
@@ -30,9 +30,10 @@ usage() {
   cat <<'EOF'
 deploy-energie-monitor.sh
 
-  ./deploy-energie-monitor.sh [production|development] [--full-stack] [--no-git-pull] [--skip-datasource]
+  ./deploy-energie-monitor.sh [base|production|development] [--full-stack] [--no-git-pull] [--skip-datasource]
 
-  production (Default):  docker-compose.yml + docker-compose.prod.yml + docker-compose.energie-monitor.yml
+  base (Default):        docker-compose.yml + docker-compose.energie-monitor.yml
+  production:            docker-compose.yml + docker-compose.prod.yml + docker-compose.energie-monitor.yml
   development:           docker-compose.yml + docker-compose.dev.yml + docker-compose.energie-monitor.yml
 
 Ohne --full-stack wird nur der Service „energie_monitor“ gebaut und gestartet (übrige Container unverändert).
@@ -42,7 +43,7 @@ Umgebung:
 EOF
 }
 
-ENVIRONMENT="production"
+MODE="base"
 FULL_STACK=false
 NO_GIT_PULL=false
 SKIP_DATASOURCE=false
@@ -63,7 +64,7 @@ for arg in "$@"; do
 done
 
 if [[ ${#POS_ARGS[@]} -gt 0 ]]; then
-  ENVIRONMENT="${POS_ARGS[0]}"
+  MODE="${POS_ARGS[0]}"
 fi
 
 FINANZEN_ROOT="${FINANZEN_ROOT:-$SCRIPT_DIR}"
@@ -96,22 +97,22 @@ if [[ ! -f "$FINANZEN_ROOT/docker-compose.energie-monitor.yml" ]]; then
   exit 1
 fi
 
-case "$ENVIRONMENT" in
-  production|development) ;;
+case "$MODE" in
+  base|production|development) ;;
   *)
-    err "Unbekannte Umgebung: $ENVIRONMENT (erlaubt: production, development)"
+    err "Unbekannter Modus: $MODE (erlaubt: base, production, development)"
     exit 1
     ;;
 esac
 
 COMPOSE_FILES=( -f "$FINANZEN_ROOT/docker-compose.yml" )
-if [[ "$ENVIRONMENT" == "production" ]]; then
+if [[ "$MODE" == "production" ]]; then
   if [[ ! -f "$FINANZEN_ROOT/docker-compose.prod.yml" ]]; then
     err "docker-compose.prod.yml fehlt (production)."
     exit 1
   fi
   COMPOSE_FILES+=( -f "$FINANZEN_ROOT/docker-compose.prod.yml" )
-else
+elif [[ "$MODE" == "development" ]]; then
   if [[ ! -f "$FINANZEN_ROOT/docker-compose.dev.yml" ]]; then
     err "docker-compose.dev.yml fehlt (development)."
     exit 1
@@ -199,7 +200,7 @@ else
   warn "datasources.yaml.template nicht gefunden – Schritt übersprungen"
 fi
 
-echo "3. Docker Compose (Umgebung: $ENVIRONMENT)…"
+echo "3. Docker Compose (Modus: $MODE)…"
 cd "$FINANZEN_ROOT"
 if [[ "$FULL_STACK" == true ]]; then
   warn "Vollständiger Stack-Start (--full-stack) – kann alle Services neu bauen/starten."
