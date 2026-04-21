@@ -173,17 +173,26 @@ if [[ ! -f "$ENERGIE_MONITOR_ROOT/.env" ]]; then
 fi
 ok "energie-monitor-app/.env vorhanden"
 
-echo "2. Grafana MariaDB-Datasource (Finanzen)…"
+echo "2. Finanzen .env laden + Grafana MariaDB-Datasource…"
 cd "$FINANZEN_ROOT"
+if [[ -f ".env" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source ".env"
+  set +a
+  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+    export COMPOSE_PROJECT_NAME
+    ok "COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME (aus Finanzen/.env)"
+  else
+    warn "COMPOSE_PROJECT_NAME nicht gesetzt – Compose nutzt den Ordnernamen als Projekt. Wenn Grafana und energie_monitor in verschiedenen Netzen hängen, in .env setzen (siehe .env.example)."
+  fi
+else
+  warn "Keine Finanzen/.env – COMPOSE_PROJECT_NAME/DB_PASSWORD ggf. fehlen"
+fi
+
 if [[ "$SKIP_DATASOURCE" == true ]]; then
   warn "Überspringe envsubst für Grafana MariaDB-Datasource"
 elif [[ -f "grafana/provisioning/datasources/datasources.yaml.template" ]]; then
-  if [[ -f ".env" ]]; then
-    set -a
-    # shellcheck source=/dev/null
-    source ".env"
-    set +a
-  fi
   if command -v envsubst >/dev/null 2>&1; then
     if [[ -z "${DB_PASSWORD:-}" ]]; then
       warn "DB_PASSWORD nicht gesetzt – envsubst für datasources.yaml übersprungen"
@@ -213,22 +222,60 @@ else
   ok "Service energie_monitor gebaut und gestartet"
 fi
 
+dump_energie_debug() {
+  echo ""
+  echo "--- Diagnose: energie_monitor / grafana ---"
+  compose ps energie_monitor grafana 2>/dev/null || compose ps || true
+  echo ""
+  echo "--- Logs energie_monitor (letzte 80 Zeilen) ---"
+  compose logs --tail=80 energie_monitor 2>/dev/null || true
+  local cid
+  cid="$(compose ps -q energie_monitor 2>/dev/null || true)"
+  if [[ -n "$cid" ]]; then
+    echo ""
+    echo "--- inspect energie_monitor ---"
+    docker inspect --format='Name={{.Name}} Status={{.State.Status}} Exit={{.State.ExitCode}} OOM={{.State.OOMKilled}} Err={{.State.Error}}' "$cid" 2>/dev/null || true
+    echo "Netzwerke (energie_monitor):"
+    docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$cid" 2>/dev/null || true
+  fi
+  if docker inspect finanzen_grafana &>/dev/null; then
+    echo "Netzwerke (finanzen_grafana):"
+    docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' finanzen_grafana 2>/dev/null || true
+    echo "(Wenn die Netzwerknamen sich unterscheiden, stimmt COMPOSE_PROJECT_NAME / Compose-Projekt nicht überein.)"
+  fi
+  echo "--- Ende Diagnose ---"
+  echo ""
+}
+
 echo "4. Healthchecks…"
 HOST_PORT="${ENERGIE_HOST_PORT:-8080}"
-if curl -fsS "http://127.0.0.1:${HOST_PORT}/health" >/dev/null; then
-  ok "Energie-API health (http://127.0.0.1:${HOST_PORT}/health)"
-else
-  warn "Health-Check auf Port ${HOST_PORT} fehlgeschlagen (Container startet evtl. noch – Logs: docker compose … logs energie_monitor)"
+health_ok=false
+for attempt in $(seq 1 15); do
+  if curl -fsS "http://127.0.0.1:${HOST_PORT}/health" >/dev/null 2>&1; then
+    ok "Energie-API health (http://127.0.0.1:${HOST_PORT}/health, Versuch ${attempt}/15)"
+    health_ok=true
+    break
+  fi
+  sleep 2
+done
+if [[ "$health_ok" != true ]]; then
+  warn "Health-Check auf Port ${HOST_PORT} nach Wartezeit fehlgeschlagen."
+  dump_energie_debug
 fi
 
-if docker ps --format '{{.Names}}' | grep -q '^finanzen_grafana$'; then
-  if docker exec finanzen_grafana wget -qO- "http://energie_monitor:8080/health" >/dev/null 2>&1; then
-    ok "Grafana-Container erreicht energie_monitor intern"
+if [[ -n "$(compose ps --status running -q grafana 2>/dev/null || true)" ]]; then
+  if compose exec -T grafana sh -c 'wget -qO- http://energie_monitor:8080/health >/dev/null 2>&1 || curl -fsS http://energie_monitor:8080/health >/dev/null 2>&1'; then
+    ok "Grafana-Service erreicht energie_monitor intern (compose exec)"
   else
-    warn "Grafana-Container konnte energie_monitor:8080 nicht abfragen (läuft Grafana? gleiches Compose-Projekt?)"
+    warn "Grafana konnte energie_monitor:8080 nicht abfragen (gleiches Compose-Projekt? COMPOSE_PROJECT_NAME in Finanzen/.env?)"
+    if [[ "$health_ok" != true ]]; then
+      : # Diagnose schon oben
+    else
+      dump_energie_debug
+    fi
   fi
 else
-  warn "Container finanzen_grafana läuft nicht – interner Check übersprungen"
+  warn "Grafana-Service läuft in diesem Compose-Stack nicht (compose ps grafana) – interner Check übersprungen"
 fi
 
 echo ""

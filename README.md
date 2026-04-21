@@ -260,6 +260,8 @@ docker compose -f docker-compose.yml -f docker-compose.energie-monitor.yml up -d
 
 Hinweis: Wenn du **nur** `docker-compose.prod.yml` nutzt, ist dort zusätzlich `yesoreyeram-infinity-datasource` neben `grafana-piechart-panel` eingetragen.
 
+**Troubleshooting:** `curl` meldet „Connection reset“ auf Port 8080 oder Grafana erreicht `energie_monitor` nicht → im Skript erscheint jetzt eine **Diagnose** (Logs + Docker-Netze). Häufig: **anderes Compose-Projekt** als beim Grafana-Start – dann in `Finanzen/.env` **`COMPOSE_PROJECT_NAME`** setzen (siehe `.env.example`), Stack neu hochfahren bzw. `deploy-energie-monitor.sh` erneut ausführen.
+
 ## 📝 Lizenz
 
 Private Nutzung - Alle Rechte vorbehalten
