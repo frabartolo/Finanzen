@@ -256,7 +256,8 @@ docker compose -f docker-compose.yml -f docker-compose.energie-monitor.yml up -d
 ```
 
 4. **Grafana**: Plugin `yesoreyeram-infinity-datasource` wird über `GF_INSTALL_PLUGINS` installiert (beim ersten Start kann das einen Moment dauern). Die Datenquelle **EnergieMonitor** wird aus `grafana/provisioning/datasources/energie-monitor.yaml` provisioniert (Basis-URL: `http://energie_monitor:8080`).
-5. **Panel**: Neues Panel → Datenquelle **EnergieMonitor** → Query-Typ **JSON** → URL z. B. `/api/v1/metrics/pv/current` (Methode **GET**). Für Zeitreihen/Aggregate die jeweiligen Endpunkte mit `start`/`end` Query-Parametern nutzen (siehe OpenAPI unter **`http://<host>:8080/docs`** auf dem Finanzen-Rechner, Port über `ENERGIE_HOST_PORT` änderbar).
+5. **Dashboard**: Unter **Dashboards → Browse** erscheint nach dem nächsten Grafana-Start (oder nach wenigen Sekunden) **`Energie Monitor (Start)`** (`grafana/dashboards/energie-monitor-start.json`) mit Kurzanleitung. Eigene Charts legst du per **New dashboard** und Datenquelle **EnergieMonitor** an.
+6. **Panel**: Datenquelle **EnergieMonitor** → Query-Typ **JSON** → URL z. B. `/api/v1/metrics/pv/current` (Methode **GET**). Für Zeitreihen/Aggregate die jeweiligen Endpunkte mit `start`/`end` nutzen (OpenAPI: **`http://<host>:8080/docs`**, Port über `ENERGIE_HOST_PORT`).
 
 Hinweis: Wenn du **nur** `docker-compose.prod.yml` nutzt, ist dort zusätzlich `yesoreyeram-infinity-datasource` neben `grafana-piechart-panel` eingetragen.
 
