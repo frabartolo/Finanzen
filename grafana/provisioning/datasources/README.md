@@ -11,3 +11,5 @@ envsubst '${DB_PASSWORD}' < datasources.yaml.template > datasources.yaml
 ```
 
 Oder das MariaDB-Passwort in Grafana unter Connections → Data sources → MariaDB → Save & test manuell setzen.
+
+Zusätzlich liegt hier `energie-monitor.yaml` (Infinity-Datasource für den optionalen Container `energie_monitor`, siehe `docker-compose.energie-monitor.yml` im Repo-Root).

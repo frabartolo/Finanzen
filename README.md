@@ -232,6 +232,31 @@ Alle ausführlichen Anleitungen liegen im Ordner [`documentation/`](documentatio
 - [📄 PDF-Import](documentation/PDF_IMPORT_ANLEITUNG.md)
 - [🚀 Deployment](documentation/DEPLOYMENT.md)
 
+## Energie-Monitor in Grafana (optional)
+
+Diese Repo-Konfiguration kann den Dienst aus `energie-monitor-app` ins gleiche Docker-Netz (`finanzen_net`) bringen und Grafana per **Infinity**-Datasource auf die JSON-API zeigen lassen.
+
+1. **Repo-Nebeneinander**: `energie-monitor-app` sollte typischerweise neben `Finanzen/` liegen (z. B. `Workspace/energie-monitor-app` und `Workspace/Finanzen`).
+2. **`.env` im Energie-Repo** ausfüllen (HA/Volkszähler), wie in `energie-monitor-app/.env.example` beschrieben.
+3. **Stack starten** (Beispiel):
+
+```bash
+cd Finanzen
+chmod +x ./deploy-energie-monitor.sh
+./deploy-energie-monitor.sh production
+```
+
+Alternativ manuell:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.energie-monitor.yml up -d --build
+```
+
+4. **Grafana**: Plugin `yesoreyeram-infinity-datasource` wird über `GF_INSTALL_PLUGINS` installiert (beim ersten Start kann das einen Moment dauern). Die Datenquelle **EnergieMonitor** wird aus `grafana/provisioning/datasources/energie-monitor.yaml` provisioniert (Basis-URL: `http://energie_monitor:8080`).
+5. **Panel**: Neues Panel → Datenquelle **EnergieMonitor** → Query-Typ **JSON** → URL z. B. `/api/v1/metrics/pv/current` (Methode **GET**). Für Zeitreihen/Aggregate die jeweiligen Endpunkte mit `start`/`end` Query-Parametern nutzen (siehe OpenAPI unter **`http://<host>:8080/docs`** auf dem Finanzen-Rechner, Port über `ENERGIE_HOST_PORT` änderbar).
+
+Hinweis: Wenn du **nur** `docker-compose.prod.yml` nutzt, ist dort zusätzlich `yesoreyeram-infinity-datasource` neben `grafana-piechart-panel` eingetragen.
+
 ## 📝 Lizenz
 
 Private Nutzung - Alle Rechte vorbehalten

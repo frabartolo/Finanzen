@@ -46,7 +46,7 @@ services:
         max-file: "3"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,yesoreyeram-infinity-datasource
       - GF_LOG_LEVEL=info
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
     # Production-spezifische Volumes für Persistierung

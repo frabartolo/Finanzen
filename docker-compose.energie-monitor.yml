@@ -1,0 +1,22 @@
+# Optional: Energie-Monitor-App ins gleiche Docker-Netz wie Grafana/Finanzen.
+#
+# Start (zusätzlich zu eurer üblichen Compose-Kette), z. B.:
+#   docker compose -f docker-compose.yml -f docker-compose.energie-monitor.yml up -d
+#
+# Voraussetzung: Repo `energie-monitor-app` liegt als Geschwister von `Finanzen/`
+# (also typisch: Workspace/energie-monitor-app neben Workspace/Finanzen).
+
+services:
+  energie_monitor:
+    build:
+      context: ../energie-monitor-app
+      dockerfile: Dockerfile
+    container_name: finanzen_energie_monitor
+    env_file:
+      - ../energie-monitor-app/.env
+    ports:
+      # OpenAPI/Docs: http://<host>:${ENERGIE_HOST_PORT:-8080}/docs
+      - "${ENERGIE_HOST_PORT:-8080}:8080"
+    restart: unless-stopped
+    networks:
+      - finanzen_net
