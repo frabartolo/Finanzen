@@ -1,0 +1,142 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Haus", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Wärmepumpe", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/pv/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "PV", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Zählerstände – Haus / Wärmepumpe / PV",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 9 },
+      "id": 2,
+      "options": { "showHeader": true },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "table",
+          "root_selector": "",
+          "json_options": { "root_is_not_array": true },
+          "columns": [
+            { "selector": "metric_id", "text": "metric_id", "type": "string" },
+            { "selector": "start", "text": "start", "type": "timestamp" },
+            { "selector": "end", "text": "end", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "value_kwh", "type": "number" },
+            { "selector": "unit", "text": "unit", "type": "string" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "table",
+          "root_selector": "",
+          "json_options": { "root_is_not_array": true },
+          "columns": [
+            { "selector": "metric_id", "text": "metric_id", "type": "string" },
+            { "selector": "value_kwh", "text": "value_kwh", "type": "number" },
+            { "selector": "unit", "text": "unit", "type": "string" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/pv/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "table",
+          "root_selector": "",
+          "json_options": { "root_is_not_array": true },
+          "columns": [
+            { "selector": "metric_id", "text": "metric_id", "type": "string" },
+            { "selector": "value_kwh", "text": "value_kwh", "type": "number" },
+            { "selector": "unit", "text": "unit", "type": "string" }
+          ]
+        }
+      ],
+      "title": "Zeitraum-Summe (window-total) – einfache Plausibilitätsprüfung",
+      "type": "table"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["energie"],
+  "templating": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Energie – Historie",
+  "uid": "energie_historie",
+  "version": 1,
+  "weekStart": ""
+}
+

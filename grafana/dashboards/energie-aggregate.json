@@ -1,0 +1,132 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus (kWh/Tag)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/pv/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "PV (kWh/Tag)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "WP (kWh/Tag)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Tageswerte (Daily Aggregate) – Haus / PV / Wärmepumpe",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/aggregate/monthly?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus (kWh/Monat)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Monatswerte – Haus",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://energie_monitor:8080/api/v1/metrics/pv/aggregate/monthly?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "simple",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "PV (kWh/Monat)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Monatswerte – PV",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["energie"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Energie – Aggregate (Tag/Monat)",
+  "uid": "energie_aggregate",
+  "version": 1,
+  "weekStart": ""
+}
+
