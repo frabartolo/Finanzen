@@ -268,7 +268,12 @@ else
     exit 1
 fi
 
-# Check pdfplumber (PDF-Parsing)
+# Check PDF-Text-Extraktion (pdftotext + pdfplumber)
+if docker compose exec -T app sh -c 'command -v pdftotext >/dev/null' 2>/dev/null; then
+    print_success "pdftotext (poppler-utils) verfügbar"
+else
+    print_warning "pdftotext fehlt im App-Container – nur pdfplumber für PDF-Text"
+fi
 if docker compose exec -T app python -c "import pdfplumber" 2>/dev/null; then
     print_success "pdfplumber (PDF-Parsing) verfügbar"
 else

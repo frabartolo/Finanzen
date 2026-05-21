@@ -15,6 +15,9 @@ settings:
   pdf_parsing:
     enabled: true
     watch_folder: "data/inbox"
+    # Text aus PDF: poppler pdftotext (-layout), Fallback pdfplumber (im Container: poppler-utils)
+    pdftotext_layout: true
+    pdftotext_timeout: 120
   
   # Ollama als Fallback für PDF-Transaktionsextraktion (nach Tesseract)
   # Erfordert: Ollama läuft auf Host (z.B. openclaw), OLLAMA_HOST=0.0.0.0

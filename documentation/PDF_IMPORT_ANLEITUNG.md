@@ -145,7 +145,7 @@ Aus Ordnernamen werden automatisch extrahiert:
 
 **Lösung:**
 1. Prüfe PDF-Format - ist es text-basiert? (kein gescanntes Bild)
-2. Teste mit: `pdfplumber` - kann Text extrahiert werden?
+2. Text-Extraktion im Container prüfen: `pdftotext -layout datei.pdf -` (poppler-utils) bzw. Fallback `pdfplumber`
 3. Schicke mir ein Beispiel-PDF zur Format-Analyse
 
 ### Falsche Beträge

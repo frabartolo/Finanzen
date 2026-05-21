@@ -10,6 +10,7 @@ import json
 import re
 import logging
 import shutil
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from urllib.request import urlopen, Request
@@ -48,6 +49,87 @@ PDF_DIR = (Path(__file__).parent.parent / "data" / "inbox").resolve()
 PROCESSED_DIR = (Path(__file__).parent.parent / "data" / "processed").resolve()
 MAX_DESCRIPTION_LENGTH = 500  # Verhindert 27k-Zeichen-Fehler bei Parser-Pathern
 OCR_DPI = 300  # DPI für PDF→Bild (höher = genauer, langsamer; 300 hilft bei OCR-Fehlern)
+PDFTOTEXT_MIN_CHARS = 50  # Unterhalb davon: pdfplumber als Fallback versuchen
+
+
+def _get_pdf_parsing_config() -> dict:
+    try:
+        cfg = load_config("settings")
+        s = cfg.get("settings", cfg)
+        return (s or cfg).get("pdf_parsing", {}) or {}
+    except Exception:
+        return {}
+
+
+def pdftotext_available() -> bool:
+    return shutil.which("pdftotext") is not None
+
+
+def extract_text_with_pdftotext(pdf_path: Path) -> str:
+    """
+    Text mit poppler pdftotext extrahieren (stdout).
+    Siehe pdftotext(1): -layout erhält Spalten/Tabellenlayout, -enc UTF-8.
+    """
+    if not pdftotext_available():
+        logger.debug("pdftotext nicht im PATH")
+        return ""
+    cfg = _get_pdf_parsing_config()
+    cmd = ["pdftotext", "-enc", "UTF-8"]
+    if cfg.get("pdftotext_layout", True):
+        cmd.append("-layout")
+    cmd.extend([str(pdf_path), "-"])
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=int(cfg.get("pdftotext_timeout", 120)),
+            check=False,
+        )
+        if result.returncode != 0:
+            err = (result.stderr or "").strip()
+            logger.warning(
+                "pdftotext Exit %s für %s: %s",
+                result.returncode,
+                pdf_path.name,
+                err[:300],
+            )
+            return ""
+        return (result.stdout or "").strip()
+    except subprocess.TimeoutExpired:
+        logger.warning("pdftotext Timeout für %s", pdf_path.name)
+        return ""
+    except OSError as e:
+        logger.warning("pdftotext fehlgeschlagen: %s", e)
+        return ""
+
+
+def extract_text_with_pdfplumber(pdf_path: Path) -> str:
+    with pdfplumber.open(pdf_path) as pdf:
+        return "\n".join(page.extract_text() or "" for page in pdf.pages).strip()
+
+
+def extract_pdf_text(pdf_path: Path) -> tuple[str, str]:
+    """
+    PDF-Text extrahieren: zuerst pdftotext (poppler), bei wenig Text pdfplumber.
+    Returns: (text, method) mit method in pdftotext | pdfplumber | none
+    """
+    poppler_text = extract_text_with_pdftotext(pdf_path)
+    plumber_text = ""
+    try:
+        plumber_text = extract_text_with_pdfplumber(pdf_path)
+    except Exception as e:
+        logger.warning("pdfplumber für %s: %s", pdf_path.name, e)
+
+    if len(poppler_text) >= len(plumber_text) and len(poppler_text) >= PDFTOTEXT_MIN_CHARS:
+        return poppler_text, "pdftotext"
+    if len(plumber_text) >= PDFTOTEXT_MIN_CHARS:
+        return plumber_text, "pdfplumber"
+    if poppler_text:
+        return poppler_text, "pdftotext"
+    if plumber_text:
+        return plumber_text, "pdfplumber"
+    return "", "none"
 
 
 def _get_ollama_config() -> dict:
@@ -442,9 +524,13 @@ def parse_pdf(path, metadata=None):
     logger.info(f"📄 Parse PDF: {path.name}")
     
     try:
-        with pdfplumber.open(path) as pdf:
-            text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-        
+        text, extract_method = extract_pdf_text(path)
+        if extract_method == "none":
+            logger.warning("   Kein Text extrahiert (pdftotext/pdfplumber)")
+            text = ""
+        else:
+            logger.info("   📝 Text via %s (%s Zeichen)", extract_method, len(text))
+
         detected_bank = detect_bank_from_text(text)
         if detected_bank:
             logger.info(f"   🏦 Bank erkannt: {detected_bank}")
