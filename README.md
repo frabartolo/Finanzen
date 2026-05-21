@@ -155,11 +155,19 @@ docker compose exec app python3 scripts/parse_pdfs.py
 
 # Postbank-Umsätze-CSV (Semikolon, Kopf „Umsätze“ / „Buchungstag“)
 docker compose exec app python3 scripts/import_postbank_csv.py
+
+# PDF-Quelle einer Buchung anzeigen (document_id / Pfad unter data/processed/)
+docker compose exec app python3 scripts/show_transaction_source.py --last 10
 # Einzeldatei, ohne Verschieben nach processed/: --no-move
 # Konto erzwingen: --account-id 1
 
 # Transaktionen kategorisieren
 docker compose exec app python3 scripts/categorize.py
+
+# Interaktiver Lernmodus (PDF prüfen, Kategorien + Regeln lernen) – TTY nötig (-it)
+docker compose exec -it app python3 scripts/learn_interactive.py pdf data/inbox/datei.pdf
+docker compose exec -it app python3 scripts/learn_interactive.py category --limit 30
+# Siehe documentation/LEARN_MODUS.md
 
 # Mit Force-Option (auch bereits kategorisierte neu zuordnen)
 docker compose exec app python3 scripts/categorize.py --force

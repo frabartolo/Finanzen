@@ -65,6 +65,23 @@ docker compose exec app python3 scripts/parse_pdfs.py
 
 Nach erfolgreicher Verarbeitung:
 - PDFs sind verschoben nach: `data/processed/` (mit gleicher Struktur)
+- Jede importierte Buchung erhält `transactions.document_id` → Pfad in `documents.source_path` (relativ zum Projekt, z. B. `data/processed/2024/konto.pdf`)
+
+**Bestehende Buchungen nachträglich mit PDFs verknüpfen** (ohne DB leeren):
+
+```bash
+docker compose exec app python3 scripts/setup_db.py --migrations-only
+docker compose exec app python3 scripts/backfill_pdf_document_links.py --dry-run
+docker compose exec app python3 scripts/backfill_pdf_document_links.py --confirm
+```
+
+Voraussetzung: PDFs liegen noch unter `data/processed/` (gleicher Inhalt wie beim Import). Buchungen werden per `transaction_hash` zugeordnet; leicht abweichende Parser-Ergebnisse können einzelne Zeilen nicht treffen.
+
+**PDF zu einer Buchung finden:**
+```bash
+docker compose exec app python3 scripts/show_transaction_source.py 123
+docker compose exec app python3 scripts/show_transaction_source.py --last 10
+```
 - Transaktionen in Datenbank importiert
 - Sichtbar im Grafana-Dashboard
 

@@ -36,6 +36,12 @@ from scripts.utils import (
     load_config,
     compute_transaction_hash,
 )
+from scripts.pdf_documents import (
+    file_sha256,
+    path_to_relative,
+    update_document_source_path,
+    upsert_pdf_document,
+)
 
 # Logging konfigurieren
 logging.basicConfig(
@@ -581,7 +587,8 @@ def parse_pdf(path, metadata=None):
                 "transactions": [],
                 "amount": float(amount_match.group(1).replace(',', '.')) if amount_match else None,
                 "metadata": metadata,
-                "bank": detected_bank
+                "bank": detected_bank,
+                "pdf_path": path,
             }
         
         logger.info(f"✓ {len(transactions)} Transaktion(en) gefunden")
@@ -589,7 +596,8 @@ def parse_pdf(path, metadata=None):
             "raw_text": text,
             "transactions": transactions,
             "metadata": metadata,
-            "bank": detected_bank
+            "bank": detected_bank,
+            "pdf_path": path,
         }
         
     except Exception as e:
@@ -622,10 +630,13 @@ def get_account_id_by_bank(bank_name):
         return 1
 
 
-def store(data, account_id=None):
-    """Geparste Daten in Datenbank speichern"""
+def store(data, account_id=None) -> tuple[bool, int | None]:
+    """
+    Geparste Daten in Datenbank speichern.
+    Returns: (success, document_id) – document_id verknüpft PDF mit Buchungen.
+    """
     if not data:
-        return False
+        return False, None
 
     try:
         with db_connection() as conn:
@@ -638,7 +649,29 @@ def store(data, account_id=None):
                 else:
                     account_id = 1
 
+            document_id: int | None = None
+            pdf_path = data.get("pdf_path")
+            if pdf_path is not None:
+                pdf_path = Path(pdf_path)
+            if pdf_path and pdf_path.is_file():
+                rel = path_to_relative(pdf_path)
+                try:
+                    fhash = file_sha256(pdf_path)
+                except OSError:
+                    fhash = None
+                document_id = upsert_pdf_document(
+                    cursor,
+                    ph,
+                    relative_path=rel,
+                    file_name=pdf_path.name,
+                    account_id=account_id,
+                    raw_text=data.get("raw_text"),
+                    file_hash=fhash,
+                )
+                logger.info("   📎 Dokument-ID %s → %s", document_id, rel)
+
             stored_count = 0
+            linked_count = 0
 
             if data.get("transactions"):
                 for trans in data["transactions"]:
@@ -647,34 +680,68 @@ def store(data, account_id=None):
                         account_id, trans["date"], trans["amount"], desc, "pdf"
                     )
                     cursor.execute(
-                        f"""INSERT IGNORE INTO transactions 
-                        (account_id, date, amount, description, source, transaction_hash) 
-                        VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})""",
-                        (account_id, trans["date"], trans["amount"], desc, "pdf", tx_hash),
+                        f"""INSERT INTO transactions
+                        (account_id, date, amount, description, source, transaction_hash, document_id)
+                        VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+                        ON DUPLICATE KEY UPDATE
+                        document_id = COALESCE(document_id, VALUES(document_id))""",
+                        (
+                            account_id,
+                            trans["date"],
+                            trans["amount"],
+                            desc,
+                            "pdf",
+                            tx_hash,
+                            document_id,
+                        ),
                     )
-                    if cursor.rowcount > 0:
+                    if cursor.rowcount == 1:
                         stored_count += 1
+                    elif cursor.rowcount == 2 and document_id:
+                        linked_count += 1
                     else:
                         logger.debug(
-                            "   ⏭️ Duplikat übersprungen (hash): %s...",
+                            "   ⏭️ Duplikat (hash): %s...",
                             desc[:30],
                         )
-            else:
-                cursor.execute(
-                    f"INSERT INTO documents (raw_text, amount) VALUES ({ph}, {ph})",
-                    (data["raw_text"], data.get("amount")),
-                )
-                stored_count += 1
+            elif document_id:
+                stored_count = 1
 
             conn.commit()
 
-        if stored_count > 0:
-            logger.info("💾 %s Datensatz/Datensätze gespeichert", stored_count)
-        return True
+        if stored_count > 0 or linked_count > 0:
+            logger.info(
+                "💾 %s neu, %s mit PDF verknüpft (Dokument %s)",
+                stored_count,
+                linked_count,
+                document_id,
+            )
+        return True, document_id
 
     except Exception as e:
         logger.error("❌ Fehler beim Speichern: %s", e)
-        return False
+        return False, None
+
+
+def update_document_path_after_move(
+    document_id: int,
+    processed_pdf: Path,
+) -> None:
+    """Pfad in documents anpassen, nachdem die PDF nach data/processed verschoben wurde."""
+    if not processed_pdf.is_file():
+        return
+    rel = path_to_relative(processed_pdf)
+    with db_connection() as conn:
+        cursor = conn.cursor()
+        update_document_source_path(
+            cursor,
+            get_db_placeholder(),
+            document_id,
+            rel,
+            processed_pdf.name,
+        )
+        conn.commit()
+    logger.debug("Dokument %s → %s", document_id, rel)
 
 
 def find_all_pdfs(directory):
@@ -738,11 +805,22 @@ def main():
             
             # PDF parsen
             data = parse_pdf(pdf, metadata)
-            
-            # In Datenbank speichern
-            if data and store(data):
-                # Nach erfolgreicher Verarbeitung verschieben (mit Struktur)
-                move_with_structure(pdf, PDF_DIR, PROCESSED_DIR)
+            if data:
+                data["pdf_path"] = pdf
+
+            # In Datenbank speichern (Buchungen ↔ PDF-Dokument)
+            ok, doc_id = store(data) if data else (False, None)
+            if ok:
+                rel_after = None
+                try:
+                    rel_inbox = pdf.relative_to(PDF_DIR)
+                    move_with_structure(pdf, PDF_DIR, PROCESSED_DIR)
+                    rel_after = PROCESSED_DIR / rel_inbox
+                except (ValueError, FileNotFoundError) as move_err:
+                    logger.warning("PDF nicht verschoben: %s", move_err)
+                    rel_after = pdf.resolve() if pdf.exists() else None
+                if doc_id and rel_after and Path(rel_after).is_file():
+                    update_document_path_after_move(doc_id, Path(rel_after).resolve())
                 processed_count += 1
                 logger.info(f"✅ Verarbeitet: {pdf.relative_to(PDF_DIR)}")
             else:

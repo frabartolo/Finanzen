@@ -140,18 +140,22 @@ def match_category_name(description: str, rules: List[CategoryRule]) -> Optional
 
 def load_all_rules(settings_categorization_rules: Optional[Dict[str, Any]] = None) -> List[CategoryRule]:
     """
-    Standard aus YAML + optional Zusatzregeln aus settings (Dict-Format).
+    Standard aus YAML + gelernte Regeln + optional Zusatzregeln aus settings (Dict-Format).
     """
+    from scripts.learned_rules import load_learned_rules_from_file
+
     base = load_default_rules_from_file()
+    learned = load_learned_rules_from_file()
     extra: List[CategoryRule] = []
     if settings_categorization_rules:
         extra = rules_from_settings_dict(settings_categorization_rules, "settings.categorization_rules")
-    rules = merge_and_sort_rules(base, extra)
-    if extra:
+    rules = merge_and_sort_rules(merge_and_sort_rules(base, learned), extra)
+    if learned or extra:
         logger.info(
-            "📋 %s Regeln geladen (%s aus YAML + %s aus settings)",
+            "📋 %s Regeln geladen (%s Standard + %s gelernt + %s settings)",
             len(rules),
             len(base),
+            len(learned),
             len(extra),
         )
     else:

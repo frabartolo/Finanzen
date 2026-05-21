@@ -1,0 +1,4 @@
+# Regeln aus dem interaktiven Lernmodus (scripts/learn_interactive.py)
+# Werden mit config/categorization_rules.yaml zusammengeführt (höhere priority = zuerst).
+
+rules: []

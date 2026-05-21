@@ -15,13 +15,30 @@ def repair():
     try:
         with db_connection() as conn:
             cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE transactions SET document_id = NULL WHERE document_id IS NOT NULL"
+            )
+            try:
+                cursor.execute(
+                    "ALTER TABLE transactions DROP FOREIGN KEY fk_transactions_document"
+                )
+            except Exception:
+                pass
             cursor.execute("DROP TABLE IF EXISTS documents")
             cursor.execute("""
                 CREATE TABLE documents (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    raw_text TEXT,
-                    amount DECIMAL(15,2),
-                    category VARCHAR(255),
+                    source_path VARCHAR(512) NULL,
+                    file_name VARCHAR(255) NULL,
+                    file_sha256 CHAR(64) NULL,
+                    account_id INT NULL,
+                    raw_text MEDIUMTEXT,
+                    amount DECIMAL(15,2) NULL,
+                    category VARCHAR(255) NULL,
+                    imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uq_documents_source_path (source_path),
+                    INDEX idx_documents_account (account_id),
+                    INDEX idx_documents_sha256 (file_sha256),
                     INDEX idx_documents_category (category)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """)

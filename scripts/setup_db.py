@@ -68,6 +68,64 @@ def update_schema_for_hierarchy():
         return True
 
 
+def update_schema_document_links():
+    """documents erweitern, transactions.document_id für PDF-Verknüpfung."""
+    print("🔄 Prüfe Schema PDF-Dokument-Verknüpfung...")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        for col, ddl in (
+            ("source_path", "VARCHAR(512) NULL COMMENT 'Relativ zum Projekt-Root'"),
+            ("file_name", "VARCHAR(255) NULL"),
+            ("file_sha256", "CHAR(64) NULL"),
+            ("account_id", "INT NULL"),
+            ("imported_at", "TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP"),
+        ):
+            cursor.execute(f"SHOW COLUMNS FROM documents LIKE '{col}'")
+            if not cursor.fetchone():
+                print(f"   documents: Spalte {col} hinzufügen...")
+                cursor.execute(f"ALTER TABLE documents ADD COLUMN {col} {ddl}")
+                conn.commit()
+
+        cursor.execute("SHOW COLUMNS FROM transactions LIKE 'document_id'")
+        if not cursor.fetchone():
+            print("   transactions: document_id hinzufügen...")
+            cursor.execute(
+                "ALTER TABLE transactions ADD COLUMN document_id INT NULL "
+                "COMMENT 'Quell-PDF (documents)'"
+            )
+            cursor.execute(
+                "ALTER TABLE transactions ADD CONSTRAINT fk_transactions_document "
+                "FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL"
+            )
+            cursor.execute(
+                "CREATE INDEX idx_transactions_document ON transactions (document_id)"
+            )
+            conn.commit()
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.statistics "
+            "WHERE table_schema = DATABASE() AND table_name = 'documents' "
+            "AND index_name = 'uq_documents_source_path'"
+        )
+        if cursor.fetchone()[0] == 0:
+            try:
+                cursor.execute(
+                    "CREATE UNIQUE INDEX uq_documents_source_path ON documents (source_path)"
+                )
+                conn.commit()
+                print("   Unique-Index uq_documents_source_path angelegt")
+            except Exception as idx_err:
+                print(f"   ⚠️ Unique-Index source_path: {idx_err}")
+
+        print("✅ PDF-Dokument-Verknüpfung im Schema")
+    except Exception as e:
+        print(f"⚠️ Schema-Update document_links: {e}")
+    finally:
+        conn.close()
+    return True
+
+
 def update_schema_transaction_hash():
     """Spalte transaction_hash + Unique-Index für idempotente Imports (bestehende DBs)."""
     print("🔄 Prüfe Schema transaction_hash...")
@@ -214,6 +272,7 @@ def main():
         print("🔄 Nur Schema-Migrationen...")
         update_schema_for_hierarchy()
         update_schema_transaction_hash()
+        update_schema_document_links()
         print("✅ Fertig.")
         return
 
@@ -232,6 +291,7 @@ def main():
     success &= init_database()
     success &= update_schema_for_hierarchy()
     success &= update_schema_transaction_hash()
+    success &= update_schema_document_links()
     success &= populate_categories()
     success &= populate_accounts()
     
