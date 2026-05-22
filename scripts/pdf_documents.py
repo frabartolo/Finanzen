@@ -11,6 +11,25 @@ from typing import Any, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# MariaDB TEXT max. 65535 *Bytes* (utf8mb4: ein Zeichen kann 4 Bytes sein)
+RAW_TEXT_MAX_BYTES = 60_000
+
+
+def truncate_raw_text_for_db(text: Optional[str]) -> Optional[str]:
+    if text is None:
+        return None
+    encoded = text.encode("utf-8")
+    if len(encoded) <= RAW_TEXT_MAX_BYTES:
+        return text
+    suffix = f"\n\n[… gekürzt für DB, ursprünglich {len(text)} Zeichen …]"
+    suffix_b = suffix.encode("utf-8")
+    budget = RAW_TEXT_MAX_BYTES - len(suffix_b)
+    if budget < 1000:
+        budget = RAW_TEXT_MAX_BYTES // 2
+    cut = encoded[:budget]
+    while cut and (cut[-1] & 0xC0) == 0x80:
+        cut = cut[:-1]
+    return cut.decode("utf-8", errors="replace") + suffix
 
 
 def path_to_relative(path: Path) -> str:
@@ -48,27 +67,41 @@ def upsert_pdf_document(
         f"SELECT id FROM documents WHERE source_path = {ph}",
         (relative_path,),
     )
+    stored_text = truncate_raw_text_for_db(raw_text)
     row = cursor.fetchone()
-    if row:
-        doc_id = int(row[0])
-        cursor.execute(
-            f"""UPDATE documents SET
-                file_name = {ph},
-                account_id = {ph},
-                raw_text = {ph},
-                file_sha256 = COALESCE({ph}, file_sha256)
-            WHERE id = {ph}""",
-            (file_name, account_id, raw_text, file_hash, doc_id),
-        )
-        return doc_id
 
-    cursor.execute(
-        f"""INSERT INTO documents
-            (source_path, file_name, file_sha256, account_id, raw_text)
-            VALUES ({ph}, {ph}, {ph}, {ph}, {ph})""",
-        (relative_path, file_name, file_hash, account_id, raw_text),
-    )
-    return int(cursor.lastrowid)
+    def _write(doc_id: Optional[int] = None) -> int:
+        if row:
+            did = int(row[0])
+            cursor.execute(
+                f"""UPDATE documents SET
+                    file_name = {ph},
+                    account_id = {ph},
+                    raw_text = {ph},
+                    file_sha256 = COALESCE({ph}, file_sha256)
+                WHERE id = {ph}""",
+                (file_name, account_id, stored_text, file_hash, did),
+            )
+            return did
+        cursor.execute(
+            f"""INSERT INTO documents
+                (source_path, file_name, file_sha256, account_id, raw_text)
+                VALUES ({ph}, {ph}, {ph}, {ph}, {ph})""",
+            (relative_path, file_name, file_hash, account_id, stored_text),
+        )
+        return int(cursor.lastrowid)
+
+    try:
+        return _write()
+    except Exception as exc:
+        err = str(exc).lower()
+        if "1406" not in err and "data too long" not in err:
+            raise
+        logger.warning(
+            "raw_text zu lang für Spalte – speichere gekürzte Vorschau (Migration MEDIUMTEXT empfohlen)"
+        )
+        stored_text = truncate_raw_text_for_db((raw_text or "")[:8000])
+        return _write()
 
 
 def update_document_source_path(

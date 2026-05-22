@@ -118,6 +118,15 @@ def update_schema_document_links():
             except Exception as idx_err:
                 print(f"   ⚠️ Unique-Index source_path: {idx_err}")
 
+        cursor.execute("SHOW COLUMNS FROM documents LIKE 'raw_text'")
+        raw_col = cursor.fetchone()
+        if raw_col:
+            col_type = (raw_col[1] or "").lower()
+            if "mediumtext" not in col_type and "longtext" not in col_type:
+                print("   documents: raw_text → MEDIUMTEXT (lange PDF-Texte)…")
+                cursor.execute("ALTER TABLE documents MODIFY raw_text MEDIUMTEXT NULL")
+                conn.commit()
+
         print("✅ PDF-Dokument-Verknüpfung im Schema")
     except Exception as e:
         print(f"⚠️ Schema-Update document_links: {e}")

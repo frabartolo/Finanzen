@@ -525,8 +525,12 @@ def _parse_transactions_from_text(text: str, detected_bank: str) -> list:
     return transactions
 
 
-def parse_pdf(path, metadata=None):
-    """PDF-Datei parsen und Transaktionsdaten extrahieren"""
+def parse_pdf(path, metadata=None, *, for_link_backfill: bool = False):
+    """
+    PDF-Datei parsen und Transaktionsdaten extrahieren.
+
+    for_link_backfill: Nur Regex-Parser (kein OCR/Ollama) – für backfill_pdf_document_links.py.
+    """
     logger.info(f"📄 Parse PDF: {path.name}")
     
     try:
@@ -544,6 +548,20 @@ def parse_pdf(path, metadata=None):
                 metadata['detected_bank'] = detected_bank
         
         transactions = _parse_transactions_from_text(text, detected_bank)
+
+        if for_link_backfill:
+            if not transactions:
+                logger.debug(
+                    "   Backfill: keine Regex-Treffer in %s (ohne OCR/Ollama)",
+                    path.name,
+                )
+            return {
+                "raw_text": text,
+                "transactions": transactions,
+                "metadata": metadata,
+                "bank": detected_bank,
+                "pdf_path": path,
+            }
         
         # OCR-Fallback: Text vorhanden, aber 0 Transaktionen (kaputte Fonts bei PDFs)
         if not transactions and len(text) > 150 and OCR_AVAILABLE:

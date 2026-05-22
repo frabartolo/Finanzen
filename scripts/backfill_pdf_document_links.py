@@ -65,11 +65,14 @@ def link_pdf(
     except ValueError:
         pass
 
-    data = parse_pdf(pdf_path, metadata)
+    data = parse_pdf(pdf_path, metadata, for_link_backfill=True)
     if not data:
         return 0, 0, 1
 
     transactions = data.get("transactions") or []
+    if not transactions:
+        return 0, 0, 0
+
     account_id = get_account_id_by_bank(data.get("bank")) if data.get("bank") else 1
     rel = path_to_relative(pdf_path)
     try:
@@ -86,13 +89,14 @@ def link_pdf(
         if dry_run:
             doc_id = -1
         else:
+            # Nur Metadaten + Verknüpfung – kein Volltext (vermeidet TEXT-Limit / Absturz)
             doc_id = upsert_pdf_document(
                 cursor,
                 ph,
                 relative_path=rel,
                 file_name=pdf_path.name,
                 account_id=account_id,
-                raw_text=data.get("raw_text"),
+                raw_text=None,
                 file_hash=fhash,
             )
 

@@ -77,6 +77,8 @@ docker compose exec app python3 scripts/backfill_pdf_document_links.py --confirm
 
 Voraussetzung: PDFs liegen noch unter `data/processed/` (gleicher Inhalt wie beim Import). Buchungen werden per `transaction_hash` zugeordnet; leicht abweichende Parser-Ergebnisse können einzelne Zeilen nicht treffen.
 
+Der Backfill nutzt **kein OCR/Ollama** (schneller, kein Netzwerk nötig). PDFs ohne Regex-Treffer (z. B. alte/scans) werden übersprungen – die Buchungen müssen damals schon in der DB sein. Einmalig: `setup_db.py --migrations-only` (u. a. `raw_text` als MEDIUMTEXT).
+
 **PDF zu einer Buchung finden:**
 ```bash
 docker compose exec app python3 scripts/show_transaction_source.py 123
