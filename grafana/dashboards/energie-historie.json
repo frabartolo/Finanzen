@@ -24,7 +24,7 @@
           "source": "url",
           "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "timeseries",
           "root_selector": "points",
           "columns": [
@@ -38,7 +38,7 @@
           "source": "url",
           "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "timeseries",
           "root_selector": "points",
           "columns": [
@@ -52,7 +52,7 @@
           "source": "url",
           "url": "http://energie_monitor:8080/api/v1/metrics/pv/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "timeseries",
           "root_selector": "points",
           "columns": [
@@ -78,7 +78,7 @@
           "source": "url",
           "url": "/api/v1/metrics/haus_gesamt/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "table",
           "root_selector": "",
           "columns": [
@@ -95,7 +95,7 @@
           "source": "url",
           "url": "/api/v1/metrics/waermepumpe/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "table",
           "root_selector": "",
           "columns": [
@@ -110,7 +110,7 @@
           "source": "url",
           "url": "/api/v1/metrics/pv/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
-          "parser": "simple",
+          "parser": "backend",
           "format": "table",
           "root_selector": "",
           "columns": [
@@ -133,7 +133,7 @@
   "timezone": "",
   "title": "Energie – Historie",
   "uid": "energie_historie",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
 
