@@ -47,9 +47,9 @@ services:
       - finanzen_net
     # Kein Port-Mapping: DB nur im Docker-Netz (Grafana/App). Extern: docker-compose.debug-db.yml
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --log-bin=mysql-bin
-    # Health check für bessere Überwachung
+    # Health check (nutzt healthcheck.sh im Image – keine $MYSQL_* in Compose nötig)
     healthcheck:
-      test: ["CMD", "mariadb", "-u", "$MYSQL_USER", "-p$MYSQL_PASSWORD", "-e", "SELECT 1;"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 30s
       timeout: 10s
       retries: 5
