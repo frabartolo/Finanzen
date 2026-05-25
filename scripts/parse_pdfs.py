@@ -525,43 +525,64 @@ def _parse_transactions_from_text(text: str, detected_bank: str) -> list:
     return transactions
 
 
+def _parse_pdf_text_and_transactions(path, metadata=None):
+    """Gemeinsamer Kopf: Text extrahieren, Bank erkennen, Regex-Transaktionen."""
+    text, extract_method = extract_pdf_text(path)
+    if extract_method == "none":
+        logger.warning("   Kein Text extrahiert (pdftotext/pdfplumber)")
+        text = ""
+    else:
+        logger.info("   📝 Text via %s (%s Zeichen)", extract_method, len(text))
+
+    detected_bank = detect_bank_from_text(text)
+    if detected_bank:
+        logger.info("   🏦 Bank erkannt: %s", detected_bank)
+        if metadata:
+            metadata["detected_bank"] = detected_bank
+
+    transactions = _parse_transactions_from_text(text, detected_bank)
+    return text, detected_bank, transactions
+
+
+def parse_pdf_link_only(path, metadata=None):
+    """
+    Nur für backfill_pdf_document_links.py: Text + Regex, kein OCR/Ollama.
+    """
+    logger.info("📄 Parse PDF (Link-Modus, kein OCR/Ollama): %s", path.name)
+    try:
+        text, detected_bank, transactions = _parse_pdf_text_and_transactions(path, metadata)
+        if not transactions:
+            logger.info(
+                "   Link-Modus: keine Regex-Buchungen in %s (Parser passt evtl. nicht zum Format)",
+                path.name,
+            )
+        else:
+            logger.info("   Link-Modus: %s Regex-Buchung(en)", len(transactions))
+        return {
+            "raw_text": text,
+            "transactions": transactions,
+            "metadata": metadata,
+            "bank": detected_bank,
+            "pdf_path": path,
+        }
+    except Exception as e:
+        logger.error("❌ Fehler beim Parsen von %s: %s", path.name, e)
+        return None
+
+
 def parse_pdf(path, metadata=None, *, for_link_backfill: bool = False):
     """
     PDF-Datei parsen und Transaktionsdaten extrahieren.
 
-    for_link_backfill: Nur Regex-Parser (kein OCR/Ollama) – für backfill_pdf_document_links.py.
+    for_link_backfill: veraltet – nutze parse_pdf_link_only(); wird hier noch unterstützt.
     """
+    if for_link_backfill or os.environ.get("FINANZEN_PDF_LINK_ONLY"):
+        return parse_pdf_link_only(path, metadata)
+
     logger.info(f"📄 Parse PDF: {path.name}")
     
     try:
-        text, extract_method = extract_pdf_text(path)
-        if extract_method == "none":
-            logger.warning("   Kein Text extrahiert (pdftotext/pdfplumber)")
-            text = ""
-        else:
-            logger.info("   📝 Text via %s (%s Zeichen)", extract_method, len(text))
-
-        detected_bank = detect_bank_from_text(text)
-        if detected_bank:
-            logger.info(f"   🏦 Bank erkannt: {detected_bank}")
-            if metadata:
-                metadata['detected_bank'] = detected_bank
-        
-        transactions = _parse_transactions_from_text(text, detected_bank)
-
-        if for_link_backfill:
-            if not transactions:
-                logger.debug(
-                    "   Backfill: keine Regex-Treffer in %s (ohne OCR/Ollama)",
-                    path.name,
-                )
-            return {
-                "raw_text": text,
-                "transactions": transactions,
-                "metadata": metadata,
-                "bank": detected_bank,
-                "pdf_path": path,
-            }
+        text, detected_bank, transactions = _parse_pdf_text_and_transactions(path, metadata)
         
         # OCR-Fallback: Text vorhanden, aber 0 Transaktionen (kaputte Fonts bei PDFs)
         if not transactions and len(text) > 150 and OCR_AVAILABLE:

@@ -462,11 +462,90 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  DATE_FORMAT(t.date, '%d.%m.%Y') as date,\n  a.name as account,\n  t.description,\n  c.name as category,\n  t.amount,\n  t.source\nFROM transactions t\nLEFT JOIN accounts a ON t.account_id = a.id\nLEFT JOIN categories c ON t.category_id = c.id\nWHERE NOT EXISTS (SELECT 1 FROM categories ex WHERE ex.id = t.category_id AND ex.name = 'Kontoauszug')\nORDER BY t.date DESC\nLIMIT 100",
+          "rawSql": "SELECT \n  DATE_FORMAT(t.date, '%d.%m.%Y') as date,\n  a.name as account,\n  t.description,\n  c.name as category,\n  t.amount,\n  t.source,\n  d.file_name as pdf_datei,\n  d.source_path as pdf_pfad\nFROM transactions t\nLEFT JOIN accounts a ON t.account_id = a.id\nLEFT JOIN categories c ON t.category_id = c.id\nLEFT JOIN documents d ON t.document_id = d.id\nWHERE NOT EXISTS (SELECT 1 FROM categories ex WHERE ex.id = t.category_id AND ex.name = 'Kontoauszug')\nORDER BY t.date DESC\nLIMIT 100",
           "refId": "A"
         }
       ],
       "title": "Letzte Umsätze (ohne Kontoauszug)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "MariaDB"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pdf_pfad"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 280
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "imported_at"
+          }
+        ]
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "MariaDB"
+          },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  d.id,\n  d.file_name,\n  d.source_path AS pdf_pfad,\n  d.imported_at,\n  COUNT(t.id) AS buchungen\nFROM documents d\nLEFT JOIN transactions t ON t.document_id = d.id\nGROUP BY d.id, d.file_name, d.source_path, d.imported_at\nORDER BY d.imported_at DESC\nLIMIT 50",
+          "refId": "A"
+        }
+      ],
+      "title": "PDF-Kontoauszüge (Dokumente in der DB)",
       "type": "table"
     },
     {
@@ -516,7 +595,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 48
       },
       "id": 8,
       "options": {
@@ -571,6 +650,6 @@
   "timezone": "Europe/Berlin",
   "title": "Finanzen Übersicht",
   "uid": "finanzen-overview",
-  "version": 1,
+  "version": 2,
   "weekStart": "monday"
 }

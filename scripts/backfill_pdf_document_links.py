@@ -15,9 +15,14 @@ Beispiele:
 from __future__ import annotations
 
 import argparse
+import logging
+import os
 import sys
 from pathlib import Path
 from typing import List, Tuple
+
+# Kein OCR/Ollama – auch wenn alte parse_pdf-Versionen importiert werden
+os.environ["FINANZEN_PDF_LINK_ONLY"] = "1"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -27,8 +32,11 @@ from scripts.parse_pdfs import (
     MAX_DESCRIPTION_LENGTH,
     extract_metadata_from_path,
     get_account_id_by_bank,
-    parse_pdf,
+    parse_pdf_link_only,
 )
+
+BACKFILL_SCRIPT_VERSION = "link-only-2026-05-22"
+logger = logging.getLogger(__name__)
 from scripts.pdf_documents import file_sha256, path_to_relative, upsert_pdf_document
 from scripts.utils import compute_transaction_hash, db_connection, get_db_placeholder
 
@@ -65,7 +73,7 @@ def link_pdf(
     except ValueError:
         pass
 
-    data = parse_pdf(pdf_path, metadata, for_link_backfill=True)
+    data = parse_pdf_link_only(pdf_path, metadata)
     if not data:
         return 0, 0, 1
 
@@ -190,7 +198,10 @@ def main() -> None:
         print("Keine PDFs gefunden unter processed/ (ggf. --include-inbox).")
         sys.exit(0)
 
-    print(f"{'[DRY-RUN] ' if dry_run else ''}{len(pdfs)} PDF(s) …")
+    print(
+        f"{'[DRY-RUN] ' if dry_run else ''}Backfill {BACKFILL_SCRIPT_VERSION} – "
+        f"{len(pdfs)} PDF(s), Parser: nur Regex (kein OCR/Ollama)"
+    )
     total_match = 0
     total_already = 0
     total_err = 0

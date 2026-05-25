@@ -40,6 +40,15 @@ docker compose exec -it app python3 scripts/learn_interactive.py category --limi
 
 Regel-Datei bearbeiten oder ins Repo committen, wenn du sie dauerhaft behalten willst.
 
+## Grafana
+
+Im Dashboard **„Finanzen Übersicht“** (nach Update der JSON unter `grafana/dashboards/`):
+
+- Tabelle **Letzte Umsätze**: Spalten `pdf_datei` / `pdf_pfad` (JOIN über `document_id`)
+- Tabelle **PDF-Kontoauszüge**: alle Einträge in `documents` mit Anzahl verknüpfter Buchungen
+
+Grafana lädt Dashboards aus dem gemounteten Ordner (ca. alle 10 s). Bei Bedarf: `docker compose restart grafana`.
+
 ## 3. Ergänzend (ohne TTY)
 
 ```bash

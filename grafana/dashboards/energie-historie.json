@@ -76,12 +76,11 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/haus_gesamt/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
             { "selector": "metric_id", "text": "metric_id", "type": "string" },
             { "selector": "start", "text": "start", "type": "timestamp" },
@@ -94,12 +93,11 @@
           "refId": "B",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/waermepumpe/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
             { "selector": "metric_id", "text": "metric_id", "type": "string" },
             { "selector": "value_kwh", "text": "value_kwh", "type": "number" },
@@ -110,12 +108,11 @@
           "refId": "C",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/pv/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/pv/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
             { "selector": "metric_id", "text": "metric_id", "type": "string" },
             { "selector": "value_kwh", "text": "value_kwh", "type": "number" },
@@ -136,7 +133,7 @@
   "timezone": "",
   "title": "Energie – Historie",
   "uid": "energie_historie",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
 

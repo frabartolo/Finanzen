@@ -16,10 +16,10 @@
       "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
       "id": 1,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
         "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
+        "textMode": "value",
+        "colorMode": "none"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -27,16 +27,13 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/haus_gesamt/current",
+          "url": "/api/v1/metrics/haus_gesamt/current",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
-            { "selector": "value", "text": "value", "type": "number" },
-            { "selector": "timestamp", "text": "timestamp", "type": "timestamp" },
-            { "selector": "unit", "text": "unit", "type": "string" }
+            { "selector": "value", "text": "value", "type": "number" }
           ]
         }
       ],
@@ -52,10 +49,10 @@
       "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
       "id": 2,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
         "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
+        "textMode": "value",
+        "colorMode": "none"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -63,16 +60,13 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/pv/current",
+          "url": "/api/v1/metrics/pv/current",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
-            { "selector": "value", "text": "value", "type": "number" },
-            { "selector": "timestamp", "text": "timestamp", "type": "timestamp" },
-            { "selector": "unit", "text": "unit", "type": "string" }
+            { "selector": "value", "text": "value", "type": "number" }
           ]
         }
       ],
@@ -88,10 +82,10 @@
       "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
       "id": 3,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
         "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value"
+        "textMode": "value",
+        "colorMode": "none"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -99,16 +93,13 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "http://energie_monitor:8080/api/v1/metrics/waermepumpe/current",
+          "url": "/api/v1/metrics/waermepumpe/current",
           "url_options": { "method": "GET" },
           "parser": "simple",
           "format": "table",
           "root_selector": "",
-          "json_options": { "root_is_not_array": true },
           "columns": [
-            { "selector": "value", "text": "value", "type": "number" },
-            { "selector": "timestamp", "text": "timestamp", "type": "timestamp" },
-            { "selector": "unit", "text": "unit", "type": "string" }
+            { "selector": "value", "text": "value", "type": "number" }
           ]
         }
       ],
@@ -168,7 +159,7 @@
   "timezone": "",
   "title": "Energie – Live/Überblick",
   "uid": "energie_live_overview",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
 
