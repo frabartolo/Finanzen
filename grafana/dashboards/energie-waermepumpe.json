@@ -1,0 +1,313 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe/current",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value", "text": "value", "type": "number" }]
+        }
+      ],
+      "title": "El. Energie gesamt",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_heizung/current",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value", "text": "value", "type": "number" }]
+        }
+      ],
+      "title": "El. Energie Heizen",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_warmwasser/current",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value", "text": "value", "type": "number" }]
+        }
+      ],
+      "title": "El. Energie Warmwasser",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_kuehlen/current",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value", "text": "value", "type": "number" }]
+        }
+      ],
+      "title": "El. Energie Kühlen",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Gesamt", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_heizung/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Heizen", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_warmwasser/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Warmwasser", "type": "number" }
+          ]
+        },
+        {
+          "refId": "D",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_kuehlen/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "value", "text": "Kühlen", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Zählerstände elektrisch (kumulativ)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
+      "id": 6,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Gesamt", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_heizung/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Heizen", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_warmwasser/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Warmwasser", "type": "number" }
+          ]
+        },
+        {
+          "refId": "D",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe_kuehlen/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Kühlen", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Tagesverbrauch elektrisch (kWh/Tag)",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 24 },
+      "id": 7,
+      "options": {
+        "content": "Entspricht den **elektrischen** Zählerständen am M-TEC (El. Energie / Heizen / WW / Kühlen). **Wärmemenge**, **JAZ** und **Momentanleistung** sind auf dem Gerät separate Werte – dafür müssten passende Home-Assistant-Entities ergänzt und in der API erweitert werden.",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": ["energie", "waermepumpe"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Energie – Wärmepumpe",
+  "uid": "energie_waermepumpe",
+  "version": 1,
+  "weekStart": ""
+}

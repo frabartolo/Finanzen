@@ -4,7 +4,19 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "fire",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "Wärmepumpe (Detail)",
+      "type": "link",
+      "url": "/d/energie_waermepumpe/energie-warmepumpe"
+    }
+  ],
   "liveNow": false,
   "panels": [
     {
@@ -159,7 +171,7 @@
   "timezone": "",
   "title": "Energie – Live/Überblick",
   "uid": "energie_live_overview",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
 
