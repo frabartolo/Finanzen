@@ -1,0 +1,225 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^haus_gesamt_kwh$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/wallbox-split?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "haus_gesamt_kwh", "text": "haus_gesamt_kwh", "type": "number" },
+            { "selector": "wallbox_kwh", "text": "wallbox_kwh", "type": "number" },
+            { "selector": "haus_ohne_wallbox_kwh", "text": "haus_ohne_wallbox_kwh", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Haus gesamt (Zeitraum)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^wallbox_kwh$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/wallbox-split?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "wallbox_kwh", "text": "wallbox_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Wallbox (Zeitraum)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^haus_ohne_wallbox_kwh$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/wallbox-split?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "haus_ohne_wallbox_kwh", "text": "haus_ohne_wallbox_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Haus ohne Wallbox (Zeitraum)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 5 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/eauto/current",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value", "text": "value", "type": "number" }]
+        }
+      ],
+      "title": "Wallbox – Zählerstand gesamt",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus gesamt", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/eauto/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Wallbox", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_ohne_eauto/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET" },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus ohne Wallbox", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Tagesverbrauch – Aufteilung Wallbox",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 20 },
+      "id": 6,
+      "options": {
+        "content": "Voraussetzung: **Hauptzähler** (`haus_gesamt`) und **Wallbox-Zähler** (`eauto`) in Home Assistant – typisch Shelly 3EM an der Wallbox (`ENTITY_ID_EAUTO_ENERGY`). „Haus ohne Wallbox“ = Verbrauchsdifferenz im gewählten Zeitraum (nicht für Einzel-Momentaufnahmen).",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "tags": ["energie", "wallbox"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Energie – Wallbox",
+  "uid": "energie_wallbox",
+  "version": 1,
+  "weekStart": ""
+}
