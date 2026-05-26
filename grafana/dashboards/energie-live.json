@@ -76,7 +76,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2 },
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
         "overrides": []
       },
       "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
@@ -103,7 +103,7 @@
           ]
         }
       ],
-      "title": "Wärmepumpe (aktueller Zählerstand)",
+      "title": "Wärmepumpe – El. Energie gesamt (kWh)",
       "type": "stat"
     },
     {
@@ -159,7 +159,7 @@
   "timezone": "",
   "title": "Energie – Live/Überblick",
   "uid": "energie_live_overview",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
 

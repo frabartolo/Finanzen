@@ -9,7 +9,7 @@
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
@@ -66,7 +66,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
       "id": 2,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
@@ -92,7 +92,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
       "id": 3,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
@@ -126,7 +126,7 @@
   "timezone": "",
   "title": "Energie – Aggregate (Tag/Monat)",
   "uid": "energie_aggregate",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
 

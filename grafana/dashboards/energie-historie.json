@@ -9,7 +9,10 @@
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
@@ -133,7 +136,7 @@
   "timezone": "",
   "title": "Energie – Historie",
   "uid": "energie_historie",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
 
