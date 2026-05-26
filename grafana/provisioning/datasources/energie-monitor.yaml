@@ -11,3 +11,5 @@ datasources:
     jsonData:
       allowedHosts:
         - http://energie_monitor:8080
+      # Aggregate-Queries (30d Volkszähler) können >60s dauern
+      timeoutInSeconds: 180

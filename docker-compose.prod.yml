@@ -49,6 +49,7 @@ services:
       - GF_INSTALL_PLUGINS=grafana-piechart-panel,yesoreyeram-infinity-datasource
       - GF_LOG_LEVEL=info
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
+      - GF_DATAPROXY_TIMEOUT=180
     # Production-spezifische Volumes für Persistierung
     volumes:
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
