@@ -4,13 +4,28 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "icon": "car",
+      "keepTime": true,
+      "title": "Wallbox (Detail)",
+      "type": "link",
+      "url": "/d/energie_wallbox/energie-wallbox"
+    },
+    {
+      "icon": "fire",
+      "keepTime": true,
+      "title": "Wärmepumpe (Detail)",
+      "type": "link",
+      "url": "/d/energie_waermepumpe/energie-warmepumpe"
+    }
+  ],
   "liveNow": false,
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
@@ -29,7 +44,7 @@
           "root_selector": "buckets",
           "columns": [
             { "selector": "period_start", "text": "time", "type": "timestamp" },
-            { "selector": "value_kwh", "text": "Haus (kWh/Tag)", "type": "number" }
+            { "selector": "value_kwh", "text": "Haus gesamt (inkl. Wallbox)", "type": "number" }
           ]
         },
         {
@@ -45,9 +60,81 @@
             { "selector": "period_start", "text": "time", "type": "timestamp" },
             { "selector": "value_kwh", "text": "PV (kWh/Tag)", "type": "number" }
           ]
+        }
+      ],
+      "title": "Tageswerte – Haus (Volkszähler) / PV",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "id": 4,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus gesamt", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/eauto/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Wallbox", "type": "number" }
+          ]
         },
         {
           "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_ohne_eauto/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus ohne Wallbox", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Tageswerte – Wallbox-Aufteilung",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
           "type": "json",
           "source": "url",
           "url": "/api/v1/metrics/waermepumpe/aggregate/daily?start=${__from:date:iso}&end=${__to:date:iso}",
@@ -57,17 +144,17 @@
           "root_selector": "buckets",
           "columns": [
             { "selector": "period_start", "text": "time", "type": "timestamp" },
-            { "selector": "value_kwh", "text": "WP (kWh/Tag)", "type": "number" }
+            { "selector": "value_kwh", "text": "Wärmepumpe (kWh/Tag)", "type": "number" }
           ]
         }
       ],
-      "title": "Tageswerte (Daily Aggregate) – Haus / PV / Wärmepumpe",
+      "title": "Tageswerte – Wärmepumpe (eigene Skala)",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 23 },
       "id": 2,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
       "pluginVersion": "11.4.3",
@@ -93,7 +180,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 23 },
       "id": 3,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
       "pluginVersion": "11.4.3",
@@ -115,6 +202,17 @@
       ],
       "title": "Monatswerte – PV",
       "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 32 },
+      "id": 6,
+      "options": {
+        "content": "**Haus gesamt** = Volkszähler (inkl. Wallbox). Wallbox: Shelly `total_apparent_power` + `EAUTO_MEASUREMENT=apparent_power_va` (VA-Integration). Wärmepumpe: eigenes Panel (eigene Skala).",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
     }
   ],
   "refresh": "",
@@ -126,7 +224,7 @@
   "timezone": "",
   "title": "Energie – Aggregate (Tag/Monat)",
   "uid": "energie_aggregate",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
 

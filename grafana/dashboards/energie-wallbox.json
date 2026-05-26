@@ -136,7 +136,7 @@
           "columns": [{ "selector": "value", "text": "value", "type": "number" }]
         }
       ],
-      "title": "Wallbox – Zählerstand gesamt",
+      "title": "Wallbox – Scheinleistung (kVA)",
       "type": "stat"
     },
     {
@@ -203,7 +203,7 @@
       "gridPos": { "h": 4, "w": 24, "x": 0, "y": 20 },
       "id": 6,
       "options": {
-        "content": "Voraussetzung: **Hauptzähler** (`haus_gesamt`) und **Wallbox-Zähler** (`eauto`) in Home Assistant – typisch Shelly 3EM an der Wallbox (`ENTITY_ID_EAUTO_ENERGY`). „Haus ohne Wallbox“ = Verbrauchsdifferenz im gewählten Zeitraum (nicht für Einzel-Momentaufnahmen).",
+        "content": "**Hauptzähler** = Volkszähler (`haus_gesamt`). **Wallbox** = Shelly `total_apparent_power` (VA) mit `EAUTO_MEASUREMENT=apparent_power_va`; Tages-/Zeitraumwerte durch Integration (kVAh, API-Feld kWh). „Haus ohne Wallbox“ = Haus minus integrierte Wallbox.",
         "mode": "markdown"
       },
       "title": "Hinweis",
