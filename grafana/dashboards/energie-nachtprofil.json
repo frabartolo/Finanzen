@@ -1,0 +1,229 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    },
+    {
+      "icon": "chart-line",
+      "keepTime": true,
+      "title": "Aggregate",
+      "type": "link",
+      "url": "/d/energie_aggregate/energie-aggregate-tag-monat"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value_kwh$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/window-total?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "value_kwh", "text": "value_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Haus – Verbrauch gesamt (Zeitraum)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"], "fields": "/^value_kwh$/", "values": true },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/aggregate/night-daily?start=${__from:date:iso}&end=${__to:date:iso}&time_from=${von_uhr}&time_to=${bis_uhr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "buckets",
+          "columns": [{ "selector": "value_kwh", "text": "value_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Haus – Summe aller Nächte (kWh)",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": {
+        "content": "**Zeitraum:** Dashboard-Zeitpicker oben.\n\n**Nachtfenster:** `${von_uhr}` – `${bis_uhr}` (Europe/Berlin).\n\nEnde ≤ Start = Fenster über Mitternacht (z. B. 22:00–06:00).",
+        "mode": "markdown"
+      },
+      "title": "Einstellungen",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
+      "id": 4,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/aggregate/night-daily?start=${__from:date:iso}&end=${__to:date:iso}&time_from=${von_uhr}&time_to=${bis_uhr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus (Nacht)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe/aggregate/night-daily?start=${__from:date:iso}&end=${__to:date:iso}&time_from=${von_uhr}&time_to=${bis_uhr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Wärmepumpe (Nacht)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_ohne_eauto/aggregate/night-daily?start=${__from:date:iso}&end=${__to:date:iso}&time_from=${von_uhr}&time_to=${bis_uhr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "period_start", "text": "time", "type": "timestamp" },
+            { "selector": "value_kwh", "text": "Haus ohne Wallbox (Nacht)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Verbrauch pro Nacht (${von_uhr} – ${bis_uhr})",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 3, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/profile/hourly?start=${__from:date:iso}&end=${__to:date:iso}&time_from=${von_uhr}&time_to=${bis_uhr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "buckets",
+          "columns": [
+            { "selector": "hour", "text": "Stunde", "type": "number" },
+            { "selector": "value_kwh", "text": "Ø kWh/Tag", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Stundenprofil im Nachtfenster (Ø kWh je Stunde & Tag)",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["energie", "nachtprofil"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "22:00", "value": "22:00" },
+        "hide": 0,
+        "label": "Von (Uhrzeit)",
+        "name": "von_uhr",
+        "options": [
+          { "selected": true, "text": "22:00", "value": "22:00" },
+          { "selected": false, "text": "23:00", "value": "23:00" },
+          { "selected": false, "text": "00:00", "value": "00:00" }
+        ],
+        "query": "22:00,23:00,00:00",
+        "type": "custom"
+      },
+      {
+        "current": { "selected": true, "text": "06:00", "value": "06:00" },
+        "hide": 0,
+        "label": "Bis (Uhrzeit)",
+        "name": "bis_uhr",
+        "options": [
+          { "selected": false, "text": "05:00", "value": "05:00" },
+          { "selected": true, "text": "06:00", "value": "06:00" },
+          { "selected": false, "text": "07:00", "value": "07:00" }
+        ],
+        "query": "05:00,06:00,07:00",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Energie – Nachtprofil",
+  "uid": "energie_nachtprofil",
+  "version": 1,
+  "weekStart": ""
+}

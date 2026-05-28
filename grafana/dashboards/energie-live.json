@@ -22,6 +22,13 @@
       "title": "Wallbox",
       "type": "link",
       "url": "/d/energie_wallbox/energie-wallbox"
+    },
+    {
+      "icon": "moon",
+      "keepTime": true,
+      "title": "Nachtprofil",
+      "type": "link",
+      "url": "/d/energie_nachtprofil/energie-nachtprofil"
     }
   ],
   "liveNow": false,

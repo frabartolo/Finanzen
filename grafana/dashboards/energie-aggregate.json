@@ -18,6 +18,13 @@
       "title": "Wärmepumpe (Detail)",
       "type": "link",
       "url": "/d/energie_waermepumpe/energie-warmepumpe"
+    },
+    {
+      "icon": "moon",
+      "keepTime": true,
+      "title": "Nachtprofil",
+      "type": "link",
+      "url": "/d/energie_nachtprofil/energie-nachtprofil"
     }
   ],
   "liveNow": false,
