@@ -86,7 +86,7 @@
       "gridPos": { "h": 5, "w": 8, "x": 16, "y": 0 },
       "id": 3,
       "options": {
-        "content": "**Zeitraum:** Dashboard-Zeitpicker oben.\n\n**Nachtfenster:** `${von_uhr}` – `${bis_uhr}` (Europe/Berlin).\n\nEnde ≤ Start = Fenster über Mitternacht (z. B. 22:00–06:00).",
+        "content": "**Zeitraum:** Zeitpicker oben (für **beliebige Stunden** z. B. 17:48–21:37 → Dashboard **Lastgang**). **Nachtfenster:** `${von_uhr}`–`${bis_uhr}` (Europe/Berlin) – zeigt nur Verbrauch in diesen Nachtstunden pro Kalendernacht.",
         "mode": "markdown"
       },
       "title": "Einstellungen",
