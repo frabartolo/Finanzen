@@ -42,7 +42,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
       "id": 1,
       "options": {
-        "reduceOptions": { "calcs": ["max"], "fields": "/^power_kw$/", "values": true },
+        "reduceOptions": { "calcs": ["max"], "fields": "/^power_kw$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -72,7 +72,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
       "id": 2,
       "options": {
-        "reduceOptions": { "calcs": ["mean"], "fields": "/^power_kw$/", "values": true },
+        "reduceOptions": { "calcs": ["mean"], "fields": "/^power_kw$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -102,7 +102,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
       "id": 3,
       "options": {
-        "reduceOptions": { "calcs": ["sum"], "fields": "/^energy_kwh$/", "values": true },
+        "reduceOptions": { "calcs": ["sum"], "fields": "/^energy_kwh$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -343,6 +343,6 @@
   "timezone": "browser",
   "title": "Energie – Lastgang",
   "uid": "energie_lastgang",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
