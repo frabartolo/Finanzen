@@ -29,6 +29,13 @@
       "title": "Nachtprofil",
       "type": "link",
       "url": "/d/energie_nachtprofil/energie-nachtprofil"
+    },
+    {
+      "icon": "chart-line",
+      "keepTime": true,
+      "title": "Lastgang",
+      "type": "link",
+      "url": "/d/energie_lastgang/energie-lastgang"
     }
   ],
   "liveNow": false,

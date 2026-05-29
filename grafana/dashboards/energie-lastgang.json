@@ -1,0 +1,348 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    },
+    {
+      "icon": "moon",
+      "keepTime": true,
+      "title": "Nachtprofil",
+      "type": "link",
+      "url": "/d/energie_nachtprofil/energie-nachtprofil"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 10,
+      "options": {
+        "content": "**Zeitraum:** Zeitpicker oben (Schnellauswahl: 24h, 7d, 30d, Jahr …). **Auflösung:** Variable `${aufloesung}` (auto passt sich der Spanne an). Lastgang = mittlere Leistung pro Intervall aus Zählerdaten.",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["max"], "fields": "/^power_kw$/", "values": true },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "points",
+          "columns": [{ "selector": "power_kw", "text": "power_kw", "type": "number" }]
+        }
+      ],
+      "title": "Haus – Spitzenleistung",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "/^power_kw$/", "values": true },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "points",
+          "columns": [{ "selector": "power_kw", "text": "power_kw", "type": "number" }]
+        }
+      ],
+      "title": "Haus – Ø Leistung",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["sum"], "fields": "/^energy_kwh$/", "values": true },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "points",
+          "columns": [{ "selector": "energy_kwh", "text": "energy_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Haus – Energie Summe",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^interval$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "interval", "text": "interval", "type": "string" }]
+        }
+      ],
+      "title": "Aktive Auflösung",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
+        "overrides": []
+      },
+      "gridPos": { "h": 11, "w": 24, "x": 0, "y": 7 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "power_kw", "text": "Haus (kW)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_ohne_eauto/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "power_kw", "text": "Haus ohne Wallbox (kW)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Lastgang – Haus",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 18 },
+      "id": 6,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/pv/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "power_kw", "text": "PV (kW)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Lastgang – PV (Erzeugung)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 18 },
+      "id": 7,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/waermepumpe/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "power_kw", "text": "Wärmepumpe (kW)", "type": "number" }
+          ]
+        },
+        {
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/eauto/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "power_kw", "text": "Wallbox (kVA)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Lastgang – Wärmepumpe / Wallbox",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 3, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 28 },
+      "id": 8,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" },
+        "stacking": { "mode": "normal", "group": "A" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/metrics/haus_gesamt/load-profile?start=${__from:date:iso}&end=${__to:date:iso}&interval=${aufloesung}",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "timeseries",
+          "root_selector": "points",
+          "columns": [
+            { "selector": "timestamp", "text": "time", "type": "timestamp" },
+            { "selector": "energy_kwh", "text": "Haus (kWh/Intervall)", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Energie pro Intervall – Haus",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["energie", "lastgang"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "auto", "value": "auto" },
+        "hide": 0,
+        "label": "Auflösung",
+        "name": "aufloesung",
+        "options": [
+          { "selected": true, "text": "auto", "value": "auto" },
+          { "selected": false, "text": "15m", "value": "15m" },
+          { "selected": false, "text": "1h", "value": "1h" },
+          { "selected": false, "text": "6h", "value": "6h" },
+          { "selected": false, "text": "1d", "value": "1d" }
+        ],
+        "query": "auto,15m,1h,6h,1d",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": { "from": "now-7d", "to": "now" },
+  "timepicker": {
+    "quick_ranges": [
+      { "display": "Heute", "from": "now/d", "to": "now" },
+      { "display": "24 Stunden", "from": "now-24h", "to": "now" },
+      { "display": "7 Tage", "from": "now-7d", "to": "now" },
+      { "display": "30 Tage", "from": "now-30d", "to": "now" },
+      { "display": "Dieses Jahr", "from": "now/y", "to": "now" }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Energie – Lastgang",
+  "uid": "energie_lastgang",
+  "version": 1,
+  "weekStart": ""
+}
