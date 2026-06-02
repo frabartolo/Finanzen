@@ -40,7 +40,7 @@
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
-        "content": "Monatswerte pro Jahr als gruppierte Balken (wie im Beispielbild).\\n\\nFix: Jahre **2012–2025**. Fehlende Monate/Jahre bleiben leer.",
+        "content": "Oben: Monatswerte pro Jahr als gruppierte Balken. Unten: **Jahresgesamtertrag** (Summe aller Monate) je Jahr – wie im LibreOffice-Beispiel.\\n\\nFix: Jahre **2012–2025**. Fehlende Monate/Jahre bleiben leer.",
         "mode": "markdown"
       },
       "title": "Hinweis",
@@ -91,6 +91,64 @@
       ],
       "title": "Solarertrag über alle Jahre (Monatswerte 2012–2025)",
       "type": "barchart"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "decimals": 0,
+          "unitScale": false,
+          "color": { "mode": "fixed", "fixedColor": "yellow" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Jahr" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Ertrag" },
+            "properties": [{ "id": "unit", "value": "kwatth" }]
+          }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 17 },
+      "id": 3,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.9,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": { "mode": "single", "sort": "none" },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/yearly?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "year", "text": "Jahr", "type": "string" },
+            { "selector": "value_kwh", "text": "Ertrag", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Solarertrag je Jahr (Gesamtleistung 2012–2025)",
+      "type": "barchart"
     }
   ],
   "refresh": "",
@@ -102,7 +160,7 @@
   "timezone": "browser",
   "title": "PV – Alle Jahre (Monate)",
   "uid": "pv_alle_jahre",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
 
