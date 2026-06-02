@@ -45,7 +45,7 @@
           "format": "table",
           "root_selector": "rows",
           "columns": [
-            { "selector": "day", "text": "Tag", "type": "number" },
+            { "selector": "day", "text": "Tag", "type": "string" },
             { "selector": "value_kwh", "text": "kWh", "type": "number" }
           ]
         }
