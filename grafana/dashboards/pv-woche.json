@@ -1,0 +1,97 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    }
+  ],
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 2,
+      "options": {
+        "content": "Woche = 7-Tage-Block innerhalb des ausgewählten Monats: Woche 1 = Tag 1–7, Woche 2 = 8–14, …",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 3 },
+      "id": 1,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": false },
+        "tooltip": { "mode": "single" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/week?year=${jahr}&month=${monat}&week=${woche}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "rows",
+          "columns": [
+            { "selector": "day", "text": "Tag", "type": "number" },
+            { "selector": "value_kwh", "text": "kWh", "type": "number" }
+          ]
+        }
+      ],
+      "title": "PV-Ertrag ${jahr}-${monat} Woche ${woche} – Tageswerte",
+      "type": "barchart"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["energie", "pv"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "2025", "value": "2025" },
+        "hide": 0,
+        "label": "Jahr",
+        "name": "jahr",
+        "options": [],
+        "query": "2025",
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "5", "value": "5" },
+        "hide": 0,
+        "label": "Monat (1–12)",
+        "name": "monat",
+        "options": [],
+        "query": "5",
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "1", "value": "1" },
+        "hide": 0,
+        "label": "Woche (1–6)",
+        "name": "woche",
+        "options": [],
+        "query": "1",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": { "from": "now-2y", "to": "now" },
+  "timezone": "browser",
+  "title": "PV – Woche (Tage)",
+  "uid": "pv_woche",
+  "version": 1,
+  "weekStart": ""
+}
+

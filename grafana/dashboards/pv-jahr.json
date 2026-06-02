@@ -1,0 +1,68 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": false },
+        "tooltip": { "mode": "single" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/year?year=${jahr}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "rows",
+          "columns": [
+            { "selector": "month_label", "text": "Monat", "type": "string" },
+            { "selector": "value_kwh", "text": "kWh", "type": "number" }
+          ]
+        }
+      ],
+      "title": "PV-Ertrag ${jahr} – Monatswerte",
+      "type": "barchart"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["energie", "pv"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "2025", "value": "2025" },
+        "hide": 0,
+        "label": "Jahr",
+        "name": "jahr",
+        "options": [],
+        "query": "2025",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": { "from": "now-2y", "to": "now" },
+  "timezone": "browser",
+  "title": "PV – Jahr (Monate)",
+  "uid": "pv_jahr",
+  "version": 1,
+  "weekStart": ""
+}
+

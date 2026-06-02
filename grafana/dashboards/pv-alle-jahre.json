@@ -1,0 +1,108 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "Energie Live",
+      "type": "link",
+      "url": "/d/energie_live_overview/energie-live-uberblick"
+    },
+    {
+      "icon": "chart-bar",
+      "keepTime": true,
+      "title": "PV Jahr",
+      "type": "link",
+      "url": "/d/pv_jahr/pv-jahr-monate"
+    },
+    {
+      "icon": "calendar-alt",
+      "keepTime": true,
+      "title": "PV Monat",
+      "type": "link",
+      "url": "/d/pv_monat/pv-monat-tage"
+    },
+    {
+      "icon": "calendar-week",
+      "keepTime": true,
+      "title": "PV Woche",
+      "type": "link",
+      "url": "/d/pv_woche/pv-woche-tage"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "content": "Monatswerte pro Jahr als gruppierte Balken (wie im Beispielbild).\\n\\nFix: Jahre **2012–2025**. Fehlende Monate/Jahre bleiben leer.",
+        "mode": "markdown"
+      },
+      "title": "Hinweis",
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
+      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 3 },
+      "id": 2,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/monthly-wide?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "month_label", "text": "Monat", "type": "string" },
+            { "selector": "y2012", "text": "2012", "type": "number" },
+            { "selector": "y2013", "text": "2013", "type": "number" },
+            { "selector": "y2014", "text": "2014", "type": "number" },
+            { "selector": "y2015", "text": "2015", "type": "number" },
+            { "selector": "y2016", "text": "2016", "type": "number" },
+            { "selector": "y2017", "text": "2017", "type": "number" },
+            { "selector": "y2018", "text": "2018", "type": "number" },
+            { "selector": "y2019", "text": "2019", "type": "number" },
+            { "selector": "y2020", "text": "2020", "type": "number" },
+            { "selector": "y2021", "text": "2021", "type": "number" },
+            { "selector": "y2022", "text": "2022", "type": "number" },
+            { "selector": "y2023", "text": "2023", "type": "number" },
+            { "selector": "y2024", "text": "2024", "type": "number" },
+            { "selector": "y2025", "text": "2025", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Solarertrag über alle Jahre (Monatswerte 2012–2025)",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": ["energie", "pv"],
+  "templating": { "list": [] },
+  "time": { "from": "now-5y", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "PV – Alle Jahre (Monate)",
+  "uid": "pv_alle_jahre",
+  "version": 1,
+  "weekStart": ""
+}
+
