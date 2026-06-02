@@ -15,7 +15,22 @@
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Tag" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Ertrag" },
+            "properties": [{ "id": "unit", "value": "kwatth" }]
+          }
+        ]
+      },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
@@ -35,7 +50,7 @@
           "root_selector": "rows",
           "columns": [
             { "selector": "day", "text": "Tag", "type": "string" },
-            { "selector": "value_kwh", "text": "kWh", "type": "number" }
+            { "selector": "value_kwh", "text": "Ertrag", "type": "number" }
           ]
         }
       ],
@@ -71,7 +86,7 @@
   "timezone": "browser",
   "title": "PV – Monat (Tage)",
   "uid": "pv_monat",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
 
