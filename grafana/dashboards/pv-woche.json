@@ -17,7 +17,7 @@
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "id": 2,
       "options": {
-        "content": "Woche = 7-Tage-Block innerhalb des ausgewählten Monats: Woche 1 = Tag 1–7, Woche 2 = 8–14, …",
+        "content": "Woche = **Montag–Sonntag**. Zuordnung zum Monat erfolgt über den **Montag**: beginnt eine Woche in einem Monat und endet im nächsten, zählt sie zum Monat des Montags. Die Grafik zeigt immer Mo–So.",
         "mode": "markdown"
       },
       "title": "Hinweis",
