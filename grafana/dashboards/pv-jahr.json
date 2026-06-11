@@ -43,13 +43,22 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "suffix:kWh/kWp", "decimals": 0, "unitScale": false },
-        "overrides": []
+        "defaults": { "unit": "suffix: kWh/kWp", "decimals": 0, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "yield_per_kwp" },
+            "properties": [
+              { "id": "unit", "value": "suffix: kWh/kWp" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 0 }
+            ]
+          }
+        ]
       },
       "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
       "id": 11,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^kWh\\/kWp$/", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^yield_per_kwp$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -65,7 +74,7 @@
           "format": "table",
           "root_selector": "",
           "columns": [
-            { "selector": "specific_yield_kwh_per_kwp", "text": "kWh/kWp", "type": "number" }
+            { "selector": "specific_yield_kwh_per_kwp", "text": "yield_per_kwp", "type": "number" }
           ]
         }
       ],
