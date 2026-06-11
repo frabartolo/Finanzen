@@ -76,11 +76,14 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": { "unit": "suffix:kWh/kWp", "decimals": 0, "unitScale": false },
+        "overrides": []
+      },
       "gridPos": { "h": 4, "w": 8, "x": 8, "y": 3 },
       "id": 11,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^specific_yield_kwh_per_kwp$/", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^kWh\\/kWp$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -96,7 +99,7 @@
           "format": "table",
           "root_selector": "",
           "columns": [
-            { "selector": "specific_yield_kwh_per_kwp", "text": "specific_yield_kwh_per_kwp", "type": "number" }
+            { "selector": "specific_yield_kwh_per_kwp", "text": "kWh/kWp", "type": "number" }
           ]
         }
       ],
@@ -193,8 +196,12 @@
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Ertrag" },
-            "properties": [{ "id": "unit", "value": "kwatth" }]
+            "matcher": { "id": "byName", "options": "kWh/kWp" },
+            "properties": [
+              { "id": "unit", "value": "suffix:kWh/kWp" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 0 }
+            ]
           }
         ]
       },
@@ -256,7 +263,7 @@
   "timezone": "browser",
   "title": "PV – Alle Jahre (Monate)",
   "uid": "pv_alle_jahre",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
 
