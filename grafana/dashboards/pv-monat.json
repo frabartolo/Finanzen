@@ -15,6 +15,89 @@
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
+      "id": 10,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^total_kwh$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&month=${monat}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "total_kwh", "text": "total_kwh", "type": "number" }]
+        }
+      ],
+      "title": "Ertrag gesamt ${jahr}-${monat}",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
+      "id": 11,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^specific_yield_kwh_per_kwp$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&month=${monat}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "specific_yield_kwh_per_kwp", "text": "specific_yield_kwh_per_kwp", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Spez. Ertrag Monat (kWh/kWp)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
+      "id": 12,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^peak_power_kwp$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&month=${monat}&timezone=Europe%2FBerlin",
+          "url_options": { "method": "GET", "timeout": 180 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [{ "selector": "peak_power_kwp", "text": "peak_power_kwp", "type": "number" }]
+        }
+      ],
+      "title": "Anlagenleistung (kWp)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
         "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
         "overrides": [
@@ -31,7 +114,7 @@
           }
         ]
       },
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
       "id": 1,
       "options": {
         "legend": { "displayMode": "list", "placement": "right", "showLegend": false },
@@ -86,7 +169,6 @@
   "timezone": "browser",
   "title": "PV – Monat (Tage)",
   "uid": "pv_monat",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
-
