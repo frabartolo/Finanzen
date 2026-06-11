@@ -40,7 +40,7 @@
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
-        "content": "Oben: Monatswerte pro Jahr als gruppierte Balken. Unten: **Jahresgesamtertrag** je Jahr.\\n\\nStatistik oben: **Gesamtertrag 2012–2025** und **kWh/kWp** (Ertrag ÷ Anlagenleistung). kWp setzen: `PV_PEAK_POWER_KWP` in der energie-monitor `.env`.",
+        "content": "Oben: Monatswerte pro Jahr als gruppierte Balken. Unten: **Jahresgesamtertrag** je Jahr.\\n\\nStatistik: **Gesamtertrag** und **kWh/kWp** (Ertrag ÷ Anlagenleistung). Variable **kWp** = 11,28 (11280 Wp); alternativ `PV_PEAK_POWER_KWP` in der energie-monitor `.env`.",
         "mode": "markdown"
       },
       "title": "Hinweis",
@@ -63,7 +63,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -90,7 +90,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -119,7 +119,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?start_year=2012&end_year=2025&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -148,7 +148,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/monthly-wide?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/monthly-wide?start_year=2012&end_year=2025&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -219,7 +219,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/yearly?start_year=2012&end_year=2025&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/yearly?start_year=2012&end_year=2025&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -238,13 +238,25 @@
   "refresh": "",
   "schemaVersion": 39,
   "tags": ["energie", "pv"],
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "11.28", "value": "11.28" },
+        "hide": 0,
+        "label": "kWp",
+        "name": "kwp",
+        "options": [],
+        "query": "11.28",
+        "type": "textbox"
+      }
+    ]
+  },
   "time": { "from": "now-5y", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "PV – Alle Jahre (Monate)",
   "uid": "pv_alle_jahre",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
 

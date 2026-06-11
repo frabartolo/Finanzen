@@ -29,7 +29,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -59,7 +59,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -88,7 +88,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin",
+          "url": "/api/v1/pv/yield/summary?year=${jahr}&timezone=Europe%2FBerlin&peak_power_kwp=${kwp}",
           "url_options": { "method": "GET", "timeout": 300 },
           "parser": "backend",
           "format": "table",
@@ -140,6 +140,15 @@
         "name": "jahr",
         "options": [],
         "query": "2025",
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "11.28", "value": "11.28" },
+        "hide": 0,
+        "label": "kWp",
+        "name": "kwp",
+        "options": [],
+        "query": "11.28",
         "type": "textbox"
       }
     ]
