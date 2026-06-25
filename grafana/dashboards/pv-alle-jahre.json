@@ -49,11 +49,23 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ertrag_kwh" },
+            "properties": [
+              { "id": "unit", "value": "kwatth" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 0 }
+            ]
+          }
+        ]
+      },
       "gridPos": { "h": 4, "w": 8, "x": 0, "y": 3 },
       "id": 10,
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^total_kwh$/", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_kwh$/", "values": false },
         "textMode": "value",
         "colorMode": "none"
       },
@@ -68,7 +80,7 @@
           "parser": "backend",
           "format": "table",
           "root_selector": "",
-          "columns": [{ "selector": "total_kwh", "text": "total_kwh", "type": "number" }]
+          "columns": [{ "selector": "total_kwh", "text": "ertrag_kwh", "type": "number" }]
         }
       ],
       "title": "Ertrag gesamt 2012–2025",
