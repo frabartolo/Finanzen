@@ -26,7 +26,7 @@
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "id": 10,
       "options": {
-        "content": "**Zeitraum:** Zeitpicker oben (Schnellauswahl: 24h, 7d, 30d, Jahr …). **Auflösung:** Variable `${aufloesung}` (auto passt sich der Spanne an). Lastgang = mittlere Leistung pro Intervall aus Zählerdaten.\\n\\n**Bilanz:** Gesamtverbrauch = Netzbezug + geschätzter PV-Eigenverbrauch (tagesweise aus Bezug und Erzeugung).",
+        "content": "**Zeitraum:** Zeitpicker oben (Schnellauswahl: 24h, 7d, 30d, Jahr …). **Auflösung:** Variable `${aufloesung}` (auto passt sich der Spanne an). Lastgang = mittlere Leistung pro Intervall aus Zählerdaten.\\n\\n**Bilanz:** Mit Einspeisungszähler: **Netzbezug (Rechnung)** = Volkszähler-Netto + Einspeisung; **Eigenverbrauch** = PV-Erzeugung − Einspeisung; **Gesamtverbrauch** = Netto + Eigenverbrauch.",
         "mode": "markdown"
       },
       "title": "Hinweis",
@@ -48,7 +48,7 @@
           }
         ]
       },
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
       "id": 20,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_gesamt$/", "values": false },
@@ -89,7 +89,7 @@
           }
         ]
       },
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
       "id": 21,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_bezug$/", "values": false },
@@ -112,7 +112,48 @@
           ]
         }
       ],
-      "title": "Eingekaufter Strom",
+      "title": "Netzbezug (Rechnung)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ertrag_einspeisung" },
+            "properties": [
+              { "id": "unit", "value": "kwatth" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "id": 23,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_einspeisung$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/balance?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 300 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "grid_export_kwh", "text": "ertrag_einspeisung", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Einspeisung",
       "type": "stat"
     },
     {
@@ -130,7 +171,7 @@
           }
         ]
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
       "id": 22,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_eigen$/", "values": false },
@@ -153,7 +194,7 @@
           ]
         }
       ],
-      "title": "Selbst produzierter Strom",
+      "title": "PV-Eigenverbrauch",
       "type": "stat"
     },
     {
