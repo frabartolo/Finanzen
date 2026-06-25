@@ -26,7 +26,7 @@
       "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
       "id": 10,
       "options": {
-        "content": "**Zeitraum:** Zeitpicker oben (Schnellauswahl: 24h, 7d, 30d, Jahr …). **Auflösung:** Variable `${aufloesung}` (auto passt sich der Spanne an). Lastgang = mittlere Leistung pro Intervall aus Zählerdaten.",
+        "content": "**Zeitraum:** Zeitpicker oben (Schnellauswahl: 24h, 7d, 30d, Jahr …). **Auflösung:** Variable `${aufloesung}` (auto passt sich der Spanne an). Lastgang = mittlere Leistung pro Intervall aus Zählerdaten.\\n\\n**Bilanz:** Gesamtverbrauch = Netzbezug + geschätzter PV-Eigenverbrauch (tagesweise aus Bezug und Erzeugung).",
         "mode": "markdown"
       },
       "title": "Hinweis",
@@ -36,10 +36,133 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ertrag_gesamt" },
+            "properties": [
+              { "id": "unit", "value": "kwatth" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 3 },
+      "id": 20,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_gesamt$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/balance?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 300 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "total_consumption_kwh", "text": "ertrag_gesamt", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Gesamtverbrauch",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ertrag_bezug" },
+            "properties": [
+              { "id": "unit", "value": "kwatth" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 3 },
+      "id": 21,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_bezug$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/balance?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 300 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "grid_import_kwh", "text": "ertrag_bezug", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Eingekaufter Strom",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
+        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ertrag_eigen" },
+            "properties": [
+              { "id": "unit", "value": "kwatth" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 3 },
+      "id": 22,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^ertrag_eigen$/", "values": false },
+        "textMode": "value",
+        "colorMode": "none"
+      },
+      "pluginVersion": "11.4.3",
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "/api/v1/energy/balance?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url_options": { "method": "GET", "timeout": 300 },
+          "parser": "backend",
+          "format": "table",
+          "root_selector": "",
+          "columns": [
+            { "selector": "self_consumed_pv_kwh", "text": "ertrag_eigen", "type": "number" }
+          ]
+        }
+      ],
+      "title": "Selbst produzierter Strom",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
+      "fieldConfig": {
         "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 7 },
       "id": 1,
       "options": {
         "reduceOptions": { "calcs": ["max"], "fields": "/^power_kw$/", "values": false },
@@ -69,7 +192,7 @@
         "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 7 },
       "id": 2,
       "options": {
         "reduceOptions": { "calcs": ["mean"], "fields": "/^power_kw$/", "values": false },
@@ -99,7 +222,7 @@
         "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 7 },
       "id": 3,
       "options": {
         "reduceOptions": { "calcs": ["sum"], "fields": "/^energy_kwh$/", "values": false },
@@ -126,7 +249,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 7 },
       "id": 4,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^interval$/", "values": false },
@@ -156,7 +279,7 @@
         "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
         "overrides": []
       },
-      "gridPos": { "h": 11, "w": 24, "x": 0, "y": 7 },
+      "gridPos": { "h": 11, "w": 24, "x": 0, "y": 11 },
       "id": 5,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
@@ -202,7 +325,7 @@
         "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 18 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 22 },
       "id": 6,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
@@ -234,7 +357,7 @@
         "defaults": { "unit": "kwatt", "decimals": 2, "unitScale": false, "custom": { "fillOpacity": 15 } },
         "overrides": []
       },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 18 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 22 },
       "id": 7,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
@@ -280,7 +403,7 @@
         "defaults": { "unit": "kwatth", "decimals": 3, "unitScale": false },
         "overrides": []
       },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 28 },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 32 },
       "id": 8,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
