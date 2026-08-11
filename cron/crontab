@@ -16,6 +16,11 @@
 # Monitoring täglich um 8:00 Uhr
 0 8 * * * /bin/bash /app/cron/monitor.sh >> /app/data/logs/monitor.log 2>&1
 
+# Grafana/energie_monitor Query-Warmup (Dashboards schneller beim Öffnen)
+30 4 * * * /bin/sh /app/cron/warmup_grafana_queries.sh full >> /app/data/logs/warmup_grafana.log 2>&1
+30 7 * * * /bin/sh /app/cron/warmup_grafana_queries.sh short >> /app/data/logs/warmup_grafana.log 2>&1
+15 */6 * * * /bin/sh /app/cron/warmup_grafana_queries.sh recent >> /app/data/logs/warmup_grafana.log 2>&1
+
 # Alte Logs aufräumen (älter als 90 Tage) - wöchentlich sonntags um 3:00
 0 3 * * 0 find /app/data/logs -name "*.log" -mtime +90 -delete
 

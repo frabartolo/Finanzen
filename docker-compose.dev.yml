@@ -36,7 +36,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=dev
       - GF_LOG_LEVEL=debug
-      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource@3.11.3
     ports:
       - "3001:3000"  # Anderer Port für Development
     restart: "no"

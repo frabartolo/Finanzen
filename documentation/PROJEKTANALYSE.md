@@ -7,7 +7,7 @@ Stand Analyse: 2026-03-19 · **Umsetzungsstand: 2026-03-19**
 | Punkt | Status | Kurz |
 |-------|--------|------|
 | **1** Grafana kein Default-Passwort | ✅ | `GF_SECURITY_ADMIN_PASSWORD` aus `.env`; `deploy.sh` bricht bei fehlendem Passwort / `admin` ab |
-| **2** Grafana-Image pinnen | ✅ | `grafana/grafana:11.4.3` in `docker-compose.yml` |
+| **2** Grafana-Image pinnen | ✅ | `grafana/grafana:11.6.5` + Infinity `@3.11.2` in `docker-compose.yml` |
 | **3** DB-Port nicht öffentlich | ✅ | Kein `3306:3306` im Standard-Compose; optional `docker-compose.debug-db.yml` (127.0.0.1) |
 | **4** Transaktions-Duplikate | ✅ | `transaction_hash` + Unique-Index; `INSERT IGNORE`; `backfill_transaction_hash.py`; siehe `DEPLOYMENT.md` |
 | **5** Regeln in Konfiguration | ✅ | `config/categorization_rules.yaml` + `scripts/categorization_rules.py` (Validierung); Zusatz in `settings.yaml` möglich |

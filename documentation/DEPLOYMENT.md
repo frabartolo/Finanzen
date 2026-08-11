@@ -303,7 +303,7 @@ docker compose ps
 
 ## 🔒 Produktions-Härtung (Stand 2026)
 
-- **Grafana:** Image gepinnt (`grafana/grafana:11.4.3`), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
+- **Grafana:** Image gepinnt (`grafana/grafana:11.6.5`, nötig für Infinity ≥3.7.2), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). Plugin `yesoreyeram-infinity-datasource@3.11.2`. `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
 - **MariaDB:** Standardmäßig kein Port `3306` auf dem Host; nur im Docker-Netz erreichbar. Für lokalen DB-Zugriff:  
   `docker compose -f docker-compose.yml -f docker-compose.debug-db.yml up -d`
 - **Transaktionen:** Spalte `transaction_hash` + Unique-Index; der Hash ist **unabhängig von der Importquelle** (PDF, FinTS, CSV), damit dieselbe Buchung nicht mehrfach landet. Nach Upgrade einmalig:  
