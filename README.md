@@ -267,7 +267,7 @@ docker compose -f docker-compose.yml -f docker-compose.energie-monitor.yml up -d
 5. **Dashboard**: Unter **Dashboards → Browse** erscheint nach dem nächsten Grafana-Start (oder nach wenigen Sekunden) **`Energie Monitor (Start)`** (`grafana/dashboards/energie-monitor-start.json`) mit Kurzanleitung. Eigene Charts legst du per **New dashboard** und Datenquelle **EnergieMonitor** an.
 6. **Panel**: Datenquelle **EnergieMonitor** → Query-Typ **JSON** → URL z. B. `/api/v1/metrics/pv/current` (Methode **GET**). Für Zeitreihen/Aggregate die jeweiligen Endpunkte mit `start`/`end` nutzen (OpenAPI: **`http://<host>:8080/docs`**, Port über `ENERGIE_HOST_PORT`).
 
-Hinweis: Wenn du **nur** `docker-compose.prod.yml` nutzt, ist dort zusätzlich `yesoreyeram-infinity-datasource` neben `grafana-piechart-panel` eingetragen.
+Hinweis: Pie-Charts im Finanzen-Dashboard nutzen die **eingebaute** Visualization (`piechart`), kein Extra-Plugin.
 
 **Troubleshooting:** `curl` meldet „Connection reset“ auf Port 8080 oder Grafana erreicht `energie_monitor` nicht → im Skript erscheint jetzt eine **Diagnose** (Logs + Docker-Netze). Häufig: **anderes Compose-Projekt** als beim Grafana-Start – dann in `Finanzen/.env` **`COMPOSE_PROJECT_NAME`** setzen (siehe `.env.example`), Stack neu hochfahren bzw. `deploy-energie-monitor.sh` erneut ausführen.
 

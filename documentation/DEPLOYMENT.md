@@ -303,7 +303,39 @@ docker compose ps
 
 ## 🔒 Produktions-Härtung (Stand 2026)
 
-- **Grafana:** Image gepinnt (`grafana/grafana:11.6.5`, nötig für Infinity ≥3.7.2), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). Plugin `yesoreyeram-infinity-datasource@3.11.2`. `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
+- **Grafana:** Image gepinnt (`grafana/grafana:11.6.5`, nötig für Infinity ≥3.7.2), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). Infinity via `GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource` (kein `grafana-piechart-panel`, kein `GF_INSTALL_PLUGINS`). `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
+
+### Grafana startet nicht: `Error: ✗ 404: Plugin not found`
+
+Container restartet in der Schleife – typisch fehlgeschlagene Plugin-Installation beim Boot (oft noch `grafana-piechart-panel` oder alte `GF_INSTALL_PLUGINS`-Zeile).
+
+**Recovery (auf dem Server):**
+
+```bash
+cd ~/workspaces/Finanzen
+
+# Welche Env wirklich gesetzt ist (Container muss nicht „healthy“ sein):
+docker inspect finanzen_grafana --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E 'PLUGIN|INSTALL'
+
+# Compose prüfen: kein GF_INSTALL_PLUGINS, kein piechart-panel;
+# nur: GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource
+
+docker compose stop grafana
+docker compose run --rm --entrypoint sh grafana -c \
+  'rm -rf /var/lib/grafana/plugins/*'
+
+# Notfall: Grafana OHNE Plugin-Install starten (kurz Env überschreiben)
+docker compose run -d --name finanzen_grafana_fix --service-ports \
+  -e GF_PLUGINS_PREINSTALL_SYNC= \
+  -e GF_INSTALL_PLUGINS= \
+  grafana
+# Wenn das läuft: UI ok → Compose fixen, Fix-Container stoppen, normal up -d grafana
+
+docker compose up -d grafana
+docker compose logs --tail=50 grafana
+```
+
+Danach Browser hart neu laden. Infinity erscheint unter **Administration → Plugins**.
 - **MariaDB:** Standardmäßig kein Port `3306` auf dem Host; nur im Docker-Netz erreichbar. Für lokalen DB-Zugriff:  
   `docker compose -f docker-compose.yml -f docker-compose.debug-db.yml up -d`
 - **Transaktionen:** Spalte `transaction_hash` + Unique-Index; der Hash ist **unabhängig von der Importquelle** (PDF, FinTS, CSV), damit dieselbe Buchung nicht mehrfach landet. Nach Upgrade einmalig:  
