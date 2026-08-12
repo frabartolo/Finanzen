@@ -67,6 +67,8 @@ services:
       # Kein grafana-piechart-panel: Pie-Chart ist seit Grafana 8 Core.
       # Kein GF_INSTALL_PLUGINS mehr (deprecated / kann Start mit 404 abbrechen).
       - GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource
+      # Loki/Pyroscope-Apps (jsx-runtime 404 auf Grafana 11.6) – Background-Installer sonst neu
+      - GF_PLUGINS_DISABLE_PLUGINS=grafana-lokiexplore-app,grafana-pyroscope-app
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
       - GF_DATAPROXY_TIMEOUT=180
     volumes:

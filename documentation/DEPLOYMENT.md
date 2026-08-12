@@ -336,6 +336,23 @@ docker compose logs --tail=50 grafana
 ```
 
 Danach Browser hart neu laden. Infinity erscheint unter **Administration → Plugins**.
+
+### Grafana: `jsx-runtime` 404 von `grafana-lokiexplore-app`
+
+Löschen allein reicht nicht: der **Background-Installer** lädt Loki Explore / Pyroscope App oft wieder (z. B. Update 1.0.10 → 1.0.39). Diese Apps sind für Finanzen/Energie nicht nötig und brechen auf Grafana 11.6 mit SystemJS Error#7.
+
+In Compose ist gesetzt:
+`GF_PLUGINS_DISABLE_PLUGINS=grafana-lokiexplore-app,grafana-pyroscope-app`
+
+Zusätzlich Ordner leeren und Container mit neuer Env neu erzeugen:
+
+```bash
+docker compose stop grafana
+docker compose run --rm --entrypoint sh grafana -c \
+  'rm -rf /var/lib/grafana/plugins/grafana-lokiexplore-app \
+          /var/lib/grafana/plugins/grafana-pyroscope-app'
+docker compose up -d --force-recreate grafana
+```
 - **MariaDB:** Standardmäßig kein Port `3306` auf dem Host; nur im Docker-Netz erreichbar. Für lokalen DB-Zugriff:  
   `docker compose -f docker-compose.yml -f docker-compose.debug-db.yml up -d`
 - **Transaktionen:** Spalte `transaction_hash` + Unique-Index; der Hash ist **unabhängig von der Importquelle** (PDF, FinTS, CSV), damit dieselbe Buchung nicht mehrfach landet. Nach Upgrade einmalig:  

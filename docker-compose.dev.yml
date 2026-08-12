@@ -37,6 +37,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=dev
       - GF_LOG_LEVEL=debug
       - GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource
+      - GF_PLUGINS_DISABLE_PLUGINS=grafana-lokiexplore-app,grafana-pyroscope-app
     ports:
       - "3001:3000"  # Anderer Port für Development
     restart: "no"
