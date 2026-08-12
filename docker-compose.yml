@@ -57,17 +57,17 @@ services:
 
   # Grafana für Visualisierung
   grafana:
-    # Infinity ≥3.7.2 braucht Grafana ≥11.6 (sonst 404/SystemJS bei react/jsx-runtime)
-    image: grafana/grafana:11.6.5
+    # Infinity mit externalisiertem jsx-runtime braucht Grafana ≥11.6.11
+    image: grafana/grafana:11.6.16
     container_name: finanzen_grafana
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      # Infinity für EnergieMonitor (ohne Versionspin – vermeidet 404 bei fehlender Version).
+      # Infinity für EnergieMonitor
       # Kein grafana-piechart-panel: Pie-Chart ist seit Grafana 8 Core.
       # Kein GF_INSTALL_PLUGINS mehr (deprecated / kann Start mit 404 abbrechen).
-      - GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource
-      # Loki/Pyroscope-Apps (jsx-runtime 404 auf Grafana 11.6) – Background-Installer sonst neu
+      - GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource@4.0.0
+      # Loki/Pyroscope-Apps (jsx-runtime 404 auf älteren 11.6) – Background-Installer sonst neu
       - GF_PLUGINS_DISABLE_PLUGINS=grafana-lokiexplore-app,grafana-pyroscope-app
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3000}
       - GF_DATAPROXY_TIMEOUT=180

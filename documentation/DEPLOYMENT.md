@@ -303,7 +303,7 @@ docker compose ps
 
 ## 🔒 Produktions-Härtung (Stand 2026)
 
-- **Grafana:** Image gepinnt (`grafana/grafana:11.6.5`, nötig für Infinity ≥3.7.2), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). Infinity via `GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource` (kein `grafana-piechart-panel`, kein `GF_INSTALL_PLUGINS`). `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
+- **Grafana:** Image gepinnt (`grafana/grafana:11.6.16`, nötig für Plugin-`react/jsx-runtime` ab 11.6.11), Admin-Passwort nur über `GRAFANA_ADMIN_PASSWORD` in `.env` (nicht `admin`). Infinity via `GF_PLUGINS_PREINSTALL_SYNC=yesoreyeram-infinity-datasource@4.0.0`. Loki/Pyroscope-Apps deaktiviert. `deploy.sh` bricht ab, wenn das Passwort fehlt oder `admin` ist.
 
 ### Grafana startet nicht: `Error: ✗ 404: Plugin not found`
 
