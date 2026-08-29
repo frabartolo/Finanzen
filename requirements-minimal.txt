@@ -2,7 +2,7 @@
 # Diese Pakete kompilieren ohne C-Compiler
 
 # Datenbank
-mysql-connector-python==8.3.0
+mysql-connector-python==9.1.0
 
 # FinTS / Banking
 fints==4.0.0
@@ -10,7 +10,7 @@ mt-940==4.30.0
 
 # Configuration
 pyyaml==6.0.1
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 
 # Logging & Utils
 colorlog==6.8.0
