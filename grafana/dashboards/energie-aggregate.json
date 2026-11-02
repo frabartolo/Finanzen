@@ -31,7 +31,7 @@
   "panels": [
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "options": {
@@ -74,7 +74,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
       "id": 4,
       "options": {
@@ -131,7 +131,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 16 },
       "id": 5,
       "options": {
@@ -160,7 +160,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 0, "y": 23 },
       "id": 2,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
@@ -186,7 +186,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false }, "overrides": [] },
       "gridPos": { "h": 9, "w": 12, "x": 12, "y": 23 },
       "id": 3,
       "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },

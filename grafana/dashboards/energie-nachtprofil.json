@@ -25,7 +25,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 8, "x": 0, "y": 0 },
@@ -55,7 +55,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 8, "x": 8, "y": 0 },
@@ -96,7 +96,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 2, "unitScale": false },
         "overrides": []
       },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
@@ -156,14 +156,22 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 3, "unitScale": false },
-        "overrides": []
+        "defaults": { "unit": "suffix:kWh", "decimals": 3, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Stunde" },
+            "properties": [
+              { "id": "unit", "value": "none" }
+            ]
+          }
+        ]
       },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
       "id": 5,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi" }
+        "tooltip": { "mode": "multi" },
+        "xField": "Stunde"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -177,7 +185,7 @@
           "format": "table",
           "root_selector": "buckets",
           "columns": [
-            { "selector": "hour", "text": "Stunde", "type": "number" },
+            { "selector": "hour", "text": "Stunde", "type": "string" },
             { "selector": "value_kwh", "text": "Ø kWh/Tag", "type": "number" }
           ]
         }

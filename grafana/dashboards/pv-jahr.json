@@ -16,12 +16,12 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
         "overrides": [
           {
             "matcher": { "id": "byName", "options": "ertrag_kwh" },
             "properties": [
-              { "id": "unit", "value": "kwatth" },
+              { "id": "unit", "value": "suffix:kWh" },
               { "id": "unitScale", "value": false },
               { "id": "decimals", "value": 0 }
             ]
@@ -122,12 +122,32 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false }, "overrides": [] },
+      "fieldConfig": {
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Monat" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Ertrag" },
+            "properties": [
+              { "id": "unit", "value": "suffix:kWh" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 0 }
+            ]
+          }
+        ]
+      },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
       "id": 1,
       "options": {
         "legend": { "displayMode": "list", "placement": "right", "showLegend": false },
-        "tooltip": { "mode": "single" }
+        "tooltip": { "mode": "single" },
+        "showValue": "auto"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -142,7 +162,7 @@
           "root_selector": "rows",
           "columns": [
             { "selector": "month_label", "text": "Monat", "type": "string" },
-            { "selector": "value_kwh", "text": "kWh", "type": "number" }
+            { "selector": "value_kwh", "text": "Ertrag", "type": "number" }
           ]
         }
       ],
@@ -178,6 +198,6 @@
   "timezone": "browser",
   "title": "PV – Jahr (Monate)",
   "uid": "pv_jahr",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

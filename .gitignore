@@ -19,6 +19,10 @@ data/inbox/*.pdf
 data/processed/*.pdf
 data/inbox/*.csv
 data/processed/*.csv
+# KEBA/M-TEC Roh-Datalog (hunderte MB) – nur extrahierte History committen
+data/waermepumpe/*.csv
+data/waermepumpe/*.csv.gz
+data/waermepumpe/*.csv.xz
 # MariaDB-/Volume-Daten (liegen direkt unter data/db/, nicht nur unter mysql/)
 data/db/
 data/logs/*.log

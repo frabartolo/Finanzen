@@ -22,7 +22,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false, "noValue": "–" },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
@@ -52,7 +52,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false, "noValue": "–" },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
@@ -82,7 +82,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false, "noValue": "–" },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
@@ -112,7 +112,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false, "noValue": "–" },
         "overrides": []
       },
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
@@ -142,14 +142,37 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "defaults": {
+          "unit": "suffix:kWh",
+          "decimals": 1,
+          "unitScale": false,
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        },
         "overrides": []
       },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
       "id": 5,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi" }
+        "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -157,7 +180,7 @@
           "refId": "A",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/metrics/waermepumpe/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/waermepumpe/timeseries?start=${__from:date:iso}&end=${__to:date:iso}&max_points=800",
           "url_options": { "method": "GET" },
           "parser": "backend",
           "format": "timeseries",
@@ -171,7 +194,7 @@
           "refId": "B",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/metrics/waermepumpe_heizung/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/waermepumpe_heizung/timeseries?start=${__from:date:iso}&end=${__to:date:iso}&max_points=800",
           "url_options": { "method": "GET" },
           "parser": "backend",
           "format": "timeseries",
@@ -185,7 +208,7 @@
           "refId": "C",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/metrics/waermepumpe_warmwasser/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/waermepumpe_warmwasser/timeseries?start=${__from:date:iso}&end=${__to:date:iso}&max_points=800",
           "url_options": { "method": "GET" },
           "parser": "backend",
           "format": "timeseries",
@@ -199,7 +222,7 @@
           "refId": "D",
           "type": "json",
           "source": "url",
-          "url": "/api/v1/metrics/waermepumpe_kuehlen/timeseries?start=${__from:date:iso}&end=${__to:date:iso}",
+          "url": "/api/v1/metrics/waermepumpe_kuehlen/timeseries?start=${__from:date:iso}&end=${__to:date:iso}&max_points=800",
           "url_options": { "method": "GET" },
           "parser": "backend",
           "format": "timeseries",
@@ -216,14 +239,37 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2, "unitScale": false },
+        "defaults": {
+          "unit": "suffix:kWh",
+          "decimals": 1,
+          "unitScale": false,
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 85,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 0,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          }
+        },
         "overrides": []
       },
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
       "id": 6,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi" }
+        "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -291,7 +337,7 @@
       "gridPos": { "h": 4, "w": 24, "x": 0, "y": 24 },
       "id": 7,
       "options": {
-        "content": "Entspricht den **elektrischen** Zählerständen am M-TEC (El. Energie / Heizen / WW / Kühlen). **Wärmemenge**, **JAZ** und **Momentanleistung** sind auf dem Gerät separate Werte – dafür müssten passende Home-Assistant-Entities ergänzt und in der API erweitert werden.",
+        "content": "Entspricht den **elektrischen** Zählerständen am M-TEC (El. Energie / Heizen / WW / Kühlen). Oben: kumulative Zählerstände als Treppenkurve. Unten: Tagesverbrauch als Balken (Lücken = keine Messwerte).\n\n**Heizen / Warmwasser / Kühlen** erscheinen erst in den Charts, wenn Home Assistant dafür Historie liefert (aktuell nur **Gesamt** aktiv). **Wärmemenge**, **JAZ** und **Momentanleistung** sind separate M-TEC-Werte – dafür müssten passende HA-Entities ergänzt werden.",
         "mode": "markdown"
       },
       "title": "Hinweis",
@@ -308,6 +354,6 @@
   "timezone": "",
   "title": "Energie – Wärmepumpe",
   "uid": "energie_waermepumpe",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

@@ -16,12 +16,12 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
         "overrides": [
           {
             "matcher": { "id": "byName", "options": "ertrag_kwh" },
             "properties": [
-              { "id": "unit", "value": "kwatth" },
+              { "id": "unit", "value": "suffix:kWh" },
               { "id": "unitScale", "value": false },
               { "id": "decimals", "value": 0 }
             ]
@@ -123,7 +123,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 1, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
         "overrides": [
           {
             "matcher": { "id": "byName", "options": "Tag" },
@@ -134,7 +134,11 @@
           },
           {
             "matcher": { "id": "byName", "options": "Ertrag" },
-            "properties": [{ "id": "unit", "value": "kwatth" }]
+            "properties": [
+              { "id": "unit", "value": "suffix:kWh" },
+              { "id": "unitScale", "value": false },
+              { "id": "decimals", "value": 0 }
+            ]
           }
         ]
       },

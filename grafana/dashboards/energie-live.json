@@ -43,7 +43,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2 },
+        "defaults": { "unit": "suffix:kWh", "decimals": 2 },
         "overrides": []
       },
       "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
@@ -76,7 +76,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 2 },
+        "defaults": { "unit": "suffix:kWh", "decimals": 2 },
         "overrides": []
       },
       "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
@@ -109,7 +109,7 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
         "overrides": []
       },
       "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
@@ -141,7 +141,7 @@
     },
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
-      "fieldConfig": { "defaults": { "unit": "kwatth", "decimals": 2 }, "overrides": [] },
+      "fieldConfig": { "defaults": { "unit": "suffix:kWh", "decimals": 2 }, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
       "id": 4,
       "options": {

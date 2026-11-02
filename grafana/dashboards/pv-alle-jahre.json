@@ -50,12 +50,12 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
         "overrides": [
           {
             "matcher": { "id": "byName", "options": "ertrag_kwh" },
             "properties": [
-              { "id": "unit", "value": "kwatth" },
+              { "id": "unit", "value": "suffix:kWh" },
               { "id": "unitScale", "value": false },
               { "id": "decimals", "value": 0 }
             ]
@@ -157,14 +157,23 @@
     {
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
-        "defaults": { "unit": "kwatth", "decimals": 0, "unitScale": false },
-        "overrides": []
+        "defaults": { "unit": "suffix:kWh", "decimals": 0, "unitScale": false },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Monat" },
+            "properties": [
+              { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 0 }
+            ]
+          }
+        ]
       },
       "gridPos": { "h": 14, "w": 24, "x": 0, "y": 7 },
       "id": 2,
       "options": {
         "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "single" }
+        "tooltip": { "mode": "single" },
+        "showValue": "never"
       },
       "pluginVersion": "11.4.3",
       "targets": [
@@ -203,7 +212,7 @@
       "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "energie_monitor" },
       "fieldConfig": {
         "defaults": {
-          "unit": "kwatth",
+          "unit": "suffix:kWh",
           "decimals": 0,
           "unitScale": false,
           "color": { "mode": "fixed", "fixedColor": "yellow" }
@@ -213,6 +222,14 @@
             "matcher": { "id": "byName", "options": "Jahr" },
             "properties": [
               { "id": "unit", "value": "none" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Ertrag" },
+            "properties": [
+              { "id": "unit", "value": "suffix:kWh" },
+              { "id": "unitScale", "value": false },
               { "id": "decimals", "value": 0 }
             ]
           },
